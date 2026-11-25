@@ -42,6 +42,7 @@ import androidx.compose.material.icons.rounded.NotificationsPaused
 import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.Sort
 import androidx.compose.material.icons.rounded.Storage
+import androidx.compose.material.icons.rounded.SystemUpdate
 import androidx.compose.material.icons.rounded.Vibration
 import androidx.compose.material.icons.rounded.ViewAgenda
 import androidx.compose.material3.AlertDialog
@@ -55,6 +56,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -89,8 +91,14 @@ import app.mimo.notes.ui.components.TransparentScreenHeader
 import app.mimo.notes.ui.components.TransparentTopFog
 import app.mimo.notes.ui.components.transparentHeaderHeight
 import app.mimo.notes.util.BiometricAuth
+import app.mimo.notes.update.UpdateChecker
+import app.mimo.notes.update.UpdateInfo
+import java.io.File
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import android.app.AlarmManager
 import android.content.Intent
 import android.net.Uri
@@ -118,6 +126,16 @@ fun SettingsScreen(
     var importBusy by remember { mutableStateOf(false) }
     var importResult by remember { mutableStateOf<KeepImportResult?>(null) }
     var importError by remember { mutableStateOf<String?>(null) }
+    var updateChecking by remember { mutableStateOf(false) }
+    var updateInfo by remember { mutableStateOf<UpdateInfo?>(null) }
+    var updateStatus by remember { mutableStateOf<String?>(null) }
+    var updateDownloading by remember { mutableStateOf(false) }
+    var updateProgress by remember { mutableFloatStateOf(0f) }
+    var updateError by remember { mutableStateOf<String?>(null) }
+    var updateReady by remember { mutableStateOf(false) }
+    var updateFile by remember { mutableStateOf<File?>(null) }
+    var updateInstallAllowed by remember { mutableStateOf(UpdateChecker.canInstall(context)) }
+    var updateDownloadJob by remember { mutableStateOf<Job?>(null) }
     val importLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.OpenDocument(),
     ) { uri ->
@@ -153,7 +171,106 @@ fun SettingsScreen(
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             exactAlarmsAllowed = alarmManager?.canScheduleExactAlarms() == true
         }
+        updateInstallAllowed = UpdateChecker.canInstall(context)
     }
+    fun checkForUpdates() {
+        if (updateChecking || updateDownloading) return
+        updateChecking = true
+        updateStatus = null
+        updateError = null
+        scope.launch {
+            try {
+                val info = UpdateChecker.check(BuildConfig.VERSION_NAME)
+                if (info == null) {
+                    updateStatus = context.getString(R.string.update_latest)
+                } else {
+                    updateInfo = info
+                    updateFile = null
+                    updateReady = false
+                    updateProgress = 0f
+                    updateError = null
+                }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                updateStatus = context.getString(R.string.update_error)
+                updateError = error.message
+            } finally {
+                updateChecking = false
+            }
+        }
+    }
+
+    fun downloadUpdate() {
+        val info = updateInfo ?: return
+        if (updateDownloading) return
+        updateDownloading = true
+        updateReady = false
+        updateProgress = 0f
+        updateError = null
+        updateDownloadJob = scope.launch {
+            try {
+                val file = UpdateChecker.download(context, info) { downloaded, total ->
+                    if (total > 0) {
+                        withContext(Dispatchers.Main) {
+                            updateProgress = (downloaded.toFloat() / total).coerceIn(0f, 1f)
+                        }
+                    }
+                }
+                updateFile = file
+                updateReady = true
+                updateStatus = context.getString(R.string.update_ready)
+                if (UpdateChecker.install(context, file)) {
+                    updateInfo = null
+                    updateFile = null
+                    updateReady = false
+                    updateStatus = null
+                } else {
+                    updateInstallAllowed = false
+                    updateError = context.getString(R.string.update_install_permission)
+                }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                updateError = when {
+                    error.message?.contains("Checksum", ignoreCase = true) == true ->
+                        context.getString(R.string.update_checksum_error)
+                    error.message?.contains("Signature", ignoreCase = true) == true ->
+                        context.getString(R.string.update_signature_error)
+                    else -> context.getString(R.string.update_download_error)
+                }
+                updateReady = false
+            } finally {
+                updateDownloading = false
+                updateDownloadJob = null
+            }
+        }
+    }
+
+    fun installDownloaded() {
+        val file = updateFile ?: return
+        if (UpdateChecker.install(context, file)) {
+            updateInfo = null
+            updateFile = null
+            updateReady = false
+            updateStatus = null
+        } else {
+            updateInstallAllowed = false
+            updateError = context.getString(R.string.update_install_permission)
+        }
+    }
+
+    fun dismissUpdate() {
+        updateDownloadJob?.cancel()
+        updateDownloadJob = null
+        updateDownloading = false
+        updateInfo = null
+        updateFile = null
+        updateReady = false
+        updateProgress = 0f
+        updateError = null
+    }
+
     BackHandler(enabled = !importBusy, onBack = onBack)
 
     val statusBarTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
@@ -462,6 +579,32 @@ fun SettingsScreen(
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                             }
+                            Spacer(Modifier.height(8.dp))
+                            SettingRow(
+                                icon = Icons.Rounded.SystemUpdate,
+                                title = stringResource(
+                                    if (updateChecking) R.string.update_checking else R.string.update_check
+                                ),
+                                subtitle = updateStatus ?: stringResource(R.string.update_check_hint),
+                                onClick = {
+                                    if (!updateChecking && !updateDownloading) checkForUpdates()
+                                },
+                                trailing = {
+                                    if (updateChecking) {
+                                        CircularProgressIndicator(
+                                            modifier = Modifier.size(18.dp),
+                                            strokeWidth = 2.dp,
+                                            color = MaterialTheme.colorScheme.primary,
+                                        )
+                                    } else {
+                                        Icon(
+                                            Icons.Rounded.ChevronRight,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        )
+                                    }
+                                },
+                            )
                             Spacer(Modifier.height(6.dp))
                             Row(verticalAlignment = Alignment.Top) {
                                 Icon(
@@ -600,6 +743,24 @@ fun SettingsScreen(
                 },
             )
         }
+    }
+
+    updateInfo?.let { info ->
+        UpdateDialog(
+            info = info,
+            currentVersion = BuildConfig.VERSION_NAME,
+            downloading = updateDownloading,
+            progress = updateProgress,
+            ready = updateReady,
+            installAllowed = updateInstallAllowed,
+            error = updateError,
+            onDismiss = ::dismissUpdate,
+            onDownload = ::downloadUpdate,
+            onInstall = ::installDownloaded,
+            onOpenInstallSettings = {
+                UpdateChecker.openInstallSettings(context)
+            },
+        )
     }
 
     if (pinSetup) {

@@ -15,3 +15,5 @@
 *.keystore
 .env
 .env.*
+
+/keys/

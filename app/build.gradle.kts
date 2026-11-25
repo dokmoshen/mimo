@@ -11,10 +11,10 @@ android {
 
     defaultConfig {
         applicationId = "app.mimo.notes"
-        minSdk = 26
+        minSdk = 28
         targetSdk = 37
-        versionCode = 5
-        versionName = "1.4"
+        versionCode = 7
+        versionName = "1.6"
     }
 
     buildFeatures {
