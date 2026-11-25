@@ -1,5 +1,8 @@
 package app.mimo.notes.ui.components
 
+import android.graphics.Bitmap
+import android.graphics.Canvas as AndroidCanvas
+import android.view.View
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -23,22 +26,45 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import app.mimo.notes.ui.LocalMimoHaptics
 
+private data class MenuBackdrop(
+    val bitmap: Bitmap,
+    val originX: Int,
+    val originY: Int,
+    val scale: Float,
+)
+
+private val LocalMenuBackdrop = staticCompositionLocalOf<MenuBackdrop?> { null }
+
 /**
- * Material 3 Expressive menus are split into rounded, frosted panels instead
- * of one long sheet. The frost is painted inside each panel: the app behind
- * stays sharp and only the panel's own background glows are blurred.
+ * Material 3 Expressive menus are split into rounded panels. The frost is a
+ * blurred snapshot of the app, clipped to each panel, so the panel background
+ * is blurred while the app around the menu stays sharp.
  */
 @Composable
 fun ExpressiveMenu(
@@ -47,12 +73,24 @@ fun ExpressiveMenu(
     modifier: Modifier = Modifier,
     content: @Composable ColumnScope.() -> Unit,
 ) {
+    val appView = LocalView.current
+    var backdrop by remember { mutableStateOf<MenuBackdrop?>(null) }
+    LaunchedEffect(expanded) {
+        if (expanded) {
+            backdrop = captureBackdrop(appView.rootView)
+        } else {
+            backdrop = null
+        }
+    }
     DropdownMenuPopup(
         expanded = expanded,
         onDismissRequest = onDismissRequest,
         modifier = modifier.widthIn(min = 220.dp, max = 244.dp),
-        content = content,
-    )
+    ) {
+        CompositionLocalProvider(LocalMenuBackdrop provides backdrop) {
+            content()
+        }
+    }
 }
 
 @Composable
@@ -65,6 +103,10 @@ fun ExpressiveMenuGroup(
     val base = MenuDefaults.groupStandardContainerColor
     val glowPrimary = MaterialTheme.colorScheme.primary
     val glowSecondary = MaterialTheme.colorScheme.secondary
+    val backdrop = LocalMenuBackdrop.current
+    val popupView = LocalView.current
+    var panelScreen by remember { mutableStateOf<Rect?>(null) }
+
     DropdownMenuGroup(
         shapes = MenuDefaults.groupShapes(shape = shape, inactiveShape = shape),
         containerColor = Color.Transparent,
@@ -80,39 +122,69 @@ fun ExpressiveMenuGroup(
             Modifier
                 .fillMaxWidth()
                 .clip(shape)
+                .onGloballyPositioned { coordinates ->
+                    val location = IntArray(2)
+                    popupView.rootView.getLocationOnScreen(location)
+                    val position = coordinates.positionInRoot()
+                    panelScreen = Rect(
+                        left = location[0] + position.x,
+                        top = location[1] + position.y,
+                        right = location[0] + position.x + coordinates.size.width,
+                        bottom = location[1] + position.y + coordinates.size.height,
+                    )
+                }
                 .background(
                     Brush.verticalGradient(
                         listOf(
-                            lerp(base, Color.White, 0.04f),
-                            lerp(base, Color.Black, 0.03f),
+                            base.copy(alpha = 0.98f),
+                            base.copy(alpha = 0.94f),
                         )
                     )
                 )
         ) {
-            Canvas(
-                Modifier
-                    .matchParentSize()
-                    .blur(14.dp)
-            ) {
-                val radius = size.minDimension * 0.95f
-                drawCircle(
-                    brush = Brush.radialGradient(
-                        colors = listOf(glowPrimary.copy(alpha = 0.20f), Color.Transparent),
+            if (backdrop != null && panelScreen != null) {
+                val screen = panelScreen!!
+                Canvas(
+                    Modifier
+                        .matchParentSize()
+                        .blur(18.dp)
+                ) {
+                    drawBackdrop(backdrop, screen)
+                }
+                Box(
+                    Modifier
+                        .matchParentSize()
+                        .background(
+                            Brush.verticalGradient(
+                                listOf(
+                                    base.copy(alpha = 0.60f),
+                                    base.copy(alpha = 0.72f),
+                                )
+                            )
+                        )
+                )
+            } else {
+                Canvas(Modifier.matchParentSize()) {
+                    val radius = size.minDimension * 0.95f
+                    drawCircle(
+                        brush = Brush.radialGradient(
+                            colors = listOf(glowPrimary.copy(alpha = 0.14f), Color.Transparent),
+                            center = Offset(size.width * 0.10f, size.height * 0.02f),
+                            radius = radius,
+                        ),
+                        radius = radius,
                         center = Offset(size.width * 0.10f, size.height * 0.02f),
+                    )
+                    drawCircle(
+                        brush = Brush.radialGradient(
+                            colors = listOf(glowSecondary.copy(alpha = 0.11f), Color.Transparent),
+                            center = Offset(size.width * 0.95f, size.height * 0.95f),
+                            radius = radius,
+                        ),
                         radius = radius,
-                    ),
-                    radius = radius,
-                    center = Offset(size.width * 0.10f, size.height * 0.02f),
-                )
-                drawCircle(
-                    brush = Brush.radialGradient(
-                        colors = listOf(glowSecondary.copy(alpha = 0.16f), Color.Transparent),
                         center = Offset(size.width * 0.95f, size.height * 0.95f),
-                        radius = radius,
-                    ),
-                    radius = radius,
-                    center = Offset(size.width * 0.95f, size.height * 0.95f),
-                )
+                    )
+                }
             }
             Column(
                 modifier = Modifier.padding(vertical = 6.dp),
@@ -171,6 +243,45 @@ fun ExpressiveMenuItem(
             colors = colors,
         )
     }
+}
+
+private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawBackdrop(
+    backdrop: MenuBackdrop,
+    panel: Rect,
+) {
+    val bitmap = backdrop.bitmap
+    val left = ((panel.left - backdrop.originX) * backdrop.scale).toInt()
+    val top = ((panel.top - backdrop.originY) * backdrop.scale).toInt()
+    val width = (panel.width * backdrop.scale).toInt().coerceAtLeast(1)
+    val height = (panel.height * backdrop.scale).toInt().coerceAtLeast(1)
+    val srcX = left.coerceIn(0, (bitmap.width - 1).coerceAtLeast(0))
+    val srcY = top.coerceIn(0, (bitmap.height - 1).coerceAtLeast(0))
+    val srcWidth = width.coerceAtMost(bitmap.width - srcX).coerceAtLeast(1)
+    val srcHeight = height.coerceAtMost(bitmap.height - srcY).coerceAtLeast(1)
+    drawImage(
+        image = bitmap.asImageBitmap(),
+        srcOffset = IntOffset(srcX, srcY),
+        srcSize = IntSize(srcWidth, srcHeight),
+        dstOffset = IntOffset.Zero,
+        dstSize = IntSize(size.width.toInt(), size.height.toInt()),
+        filterQuality = FilterQuality.High,
+    )
+}
+
+private fun captureBackdrop(root: View): MenuBackdrop? {
+    if (root.width <= 0 || root.height <= 0) return null
+    return runCatching {
+        val scale = 0.18f
+        val width = (root.width * scale).toInt().coerceAtLeast(1)
+        val height = (root.height * scale).toInt().coerceAtLeast(1)
+        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        val canvas = AndroidCanvas(bitmap)
+        canvas.scale(scale, scale)
+        root.draw(canvas)
+        val location = IntArray(2)
+        root.getLocationOnScreen(location)
+        MenuBackdrop(bitmap, location[0], location[1], scale)
+    }.getOrNull()
 }
 
 private val GroupRadius = 34.dp
