@@ -1,9 +1,12 @@
 package app.mimo.notes.ui.components
 
-import android.os.Build
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -11,29 +14,31 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.DropdownMenuGroup
+import androidx.compose.material3.DropdownMenuPopup
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import app.mimo.notes.ui.LocalMimoHaptics
 
-val LocalNoteMenuVisibility = staticCompositionLocalOf<(Long, Boolean) -> Unit> { { _, _ -> } }
-
 /**
- * Material 3 Expressive menus are split into rounded, translucent groups
- * instead of one long sheet. The content behind the menu is blurred by the
- * host screen, so the panels read as frosted glass.
+ * Material 3 Expressive menus are split into rounded, frosted panels instead
+ * of one long sheet. The frost is painted inside each panel: the app behind
+ * stays sharp and only the panel's own background glows are blurred.
  */
 @Composable
 fun ExpressiveMenu(
@@ -42,14 +47,10 @@ fun ExpressiveMenu(
     modifier: Modifier = Modifier,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    DropdownMenu(
+    DropdownMenuPopup(
         expanded = expanded,
         onDismissRequest = onDismissRequest,
         modifier = modifier.widthIn(min = 220.dp, max = 244.dp),
-        shape = RoundedCornerShape(0.dp),
-        containerColor = Color.Transparent,
-        tonalElevation = 0.dp,
-        shadowElevation = 0.dp,
         content = content,
     )
 }
@@ -61,20 +62,64 @@ fun ExpressiveMenuGroup(
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val shape = groupShape(index, count)
-    val blurAvailable = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+    val base = MenuDefaults.groupStandardContainerColor
+    val glowPrimary = MaterialTheme.colorScheme.primary
+    val glowSecondary = MaterialTheme.colorScheme.secondary
     DropdownMenuGroup(
         shapes = MenuDefaults.groupShapes(shape = shape, inactiveShape = shape),
-        containerColor = MenuDefaults.groupStandardContainerColor.copy(
-            alpha = if (blurAvailable) 0.82f else 0.96f,
-        ),
+        containerColor = Color.Transparent,
         tonalElevation = 0.dp,
-        shadowElevation = 12.dp,
+        shadowElevation = 10.dp,
         border = BorderStroke(
             1.dp,
             MaterialTheme.colorScheme.onSurface.copy(alpha = 0.10f),
         ),
-        content = content,
-    )
+        contentPadding = PaddingValues(0.dp),
+    ) {
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .clip(shape)
+                .background(
+                    Brush.verticalGradient(
+                        listOf(
+                            lerp(base, Color.White, 0.04f),
+                            lerp(base, Color.Black, 0.03f),
+                        )
+                    )
+                )
+        ) {
+            Canvas(
+                Modifier
+                    .matchParentSize()
+                    .blur(14.dp)
+            ) {
+                val radius = size.minDimension * 0.95f
+                drawCircle(
+                    brush = Brush.radialGradient(
+                        colors = listOf(glowPrimary.copy(alpha = 0.20f), Color.Transparent),
+                        center = Offset(size.width * 0.10f, size.height * 0.02f),
+                        radius = radius,
+                    ),
+                    radius = radius,
+                    center = Offset(size.width * 0.10f, size.height * 0.02f),
+                )
+                drawCircle(
+                    brush = Brush.radialGradient(
+                        colors = listOf(glowSecondary.copy(alpha = 0.16f), Color.Transparent),
+                        center = Offset(size.width * 0.95f, size.height * 0.95f),
+                        radius = radius,
+                    ),
+                    radius = radius,
+                    center = Offset(size.width * 0.95f, size.height * 0.95f),
+                )
+            }
+            Column(
+                modifier = Modifier.padding(vertical = 6.dp),
+                content = content,
+            )
+        }
+    }
     if (index < count - 1) {
         Spacer(Modifier.height(6.dp))
     }

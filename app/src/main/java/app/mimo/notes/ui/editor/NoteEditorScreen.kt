@@ -26,7 +26,6 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.BorderStroke
@@ -104,8 +103,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.BlurredEdgeTreatment
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -313,11 +310,6 @@ fun NoteEditorScreen(
         targetValue = if (readerRevealed) 1f else 0f,
         animationSpec = tween(340, easing = FastOutSlowInEasing),
         label = "readerReveal",
-    )
-    val menuBlur by animateDpAsState(
-        targetValue = if (showMore) 12.dp else 0.dp,
-        animationSpec = tween(180, easing = FastOutSlowInEasing),
-        label = "editorMenuBlur",
     )
 
     fun enterEditMode() {
@@ -741,7 +733,6 @@ fun NoteEditorScreen(
                 alpha = 1f - 0.12f * p
             }
             .background(background)
-            .blur(menuBlur, BlurredEdgeTreatment.Unbounded)
     ) {
         Canvas(Modifier.fillMaxSize()) {
             drawCircle(

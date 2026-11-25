@@ -55,7 +55,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -185,13 +184,6 @@ fun NoteCard(
         label = "noteStackFan",
     )
     var menuExpanded by remember { mutableStateOf(false) }
-    val menuVisibility = LocalNoteMenuVisibility.current
-    LaunchedEffect(menuExpanded) {
-        menuVisibility(note.id, menuExpanded)
-    }
-    DisposableEffect(note.id) {
-        onDispose { menuVisibility(note.id, false) }
-    }
     val wide = presentation != NoteCardPresentation.GRID
     val titleStyle = if (presentation == NoteCardPresentation.SPOTLIGHT || note.images.isNotEmpty()) {
         MaterialTheme.typography.titleLarge
