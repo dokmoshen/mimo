@@ -60,6 +60,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Archive
+import androidx.compose.material.icons.rounded.AutoFixHigh
 import androidx.compose.material.icons.rounded.Brush
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Close
@@ -153,11 +154,15 @@ import app.mimo.notes.ui.components.PaperGrain
 import app.mimo.notes.ui.components.ReminderSheet
 import app.mimo.notes.ui.text.InlineFormat
 import app.mimo.notes.ui.text.ListFormat
+import app.mimo.notes.ui.text.ProofreadResult
+import app.mimo.notes.ui.text.SpellingIssue
+import app.mimo.notes.ui.text.SystemSpellChecker
 import app.mimo.notes.ui.text.applyHeading
 import app.mimo.notes.ui.text.applyInlineFormat
 import app.mimo.notes.ui.text.headingScale
 import app.mimo.notes.ui.text.isInlineFormatActive
 import app.mimo.notes.ui.text.isListActive
+import app.mimo.notes.ui.text.proofreadText
 import app.mimo.notes.ui.text.toggleList
 import app.mimo.notes.ui.theme.LabelColors
 import app.mimo.notes.ui.theme.LocalMimoDark
@@ -171,6 +176,7 @@ import app.mimo.notes.ui.util.isOverdue
 import app.mimo.notes.ui.util.shareNote
 import app.mimo.notes.util.BiometricAuth
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.launch
 import java.io.File
 
@@ -276,6 +282,9 @@ fun NoteEditorScreen(
     var showPhotoOptions by remember { mutableStateOf(false) }
     var showDeleteConfirm by remember { mutableStateOf(false) }
     var showMore by remember { mutableStateOf(false) }
+    var proofreadResult by remember { mutableStateOf<ProofreadResult?>(null) }
+    var spellingIssues by remember { mutableStateOf<List<SpellingIssue>>(emptyList()) }
+    var spellingLoading by remember { mutableStateOf(false) }
     var pinRequest by remember { mutableStateOf<EditorPinRequest?>(null) }
     var drawingEditor by remember { mutableStateOf(false) }
     var openImage by remember { mutableStateOf<String?>(null) }
@@ -477,6 +486,26 @@ fun NoteEditorScreen(
 
     fun closeEditor() {
         viewModel.saveAndClose(onClose)
+    }
+
+    fun runProofread() {
+        val text = viewModel.body.text
+        if (text.isBlank()) {
+            showMessage(context.getString(R.string.proofread_empty))
+            return
+        }
+        proofreadResult = proofreadText(text)
+    }
+
+    LaunchedEffect(proofreadResult) {
+        val result = proofreadResult ?: return@LaunchedEffect
+        spellingIssues = emptyList()
+        spellingLoading = true
+        val issues = withTimeoutOrNull(2500) {
+            SystemSpellChecker.check(context, result.original)
+        } ?: emptyList()
+        spellingIssues = issues
+        spellingLoading = false
     }
 
     fun finishClose() {
@@ -704,6 +733,10 @@ fun NoteEditorScreen(
                     onShare = {
                         showMore = false
                         shareNote(context, viewModel.currentNote())
+                    },
+                    onProofread = {
+                        showMore = false
+                        runProofread()
                     },
                     onToggleLock = {
                         showMore = false
@@ -988,6 +1021,36 @@ fun NoteEditorScreen(
                 .align(Alignment.BottomCenter)
                 .navigationBarsPadding()
                 .padding(bottom = 96.dp, start = 16.dp, end = 16.dp),
+        )
+    }
+
+    proofreadResult?.let { result ->
+        ProofreadDialog(
+            result = result,
+            spellingIssues = spellingIssues,
+            spellingLoading = spellingLoading,
+            onDismiss = { proofreadResult = null },
+            onApply = {
+                if (viewModel.applyProofread(result)) {
+                    haptics.confirm()
+                    showMessage(context.getString(R.string.proofread_applied))
+                } else {
+                    haptics.reject()
+                    showMessage(context.getString(R.string.proofread_stale))
+                }
+                proofreadResult = null
+            },
+            onSpellingFix = { issue, suggestion ->
+                if (viewModel.applySpellingFix(result.original, issue.start, issue.end, suggestion)) {
+                    haptics.confirm()
+                    showMessage(context.getString(R.string.proofread_applied))
+                    proofreadResult = null
+                    spellingIssues = emptyList()
+                } else {
+                    haptics.reject()
+                    showMessage(context.getString(R.string.proofread_stale))
+                }
+            },
         )
     }
 
@@ -1590,6 +1653,7 @@ private fun EditorTopBar(
     onDismissMore: () -> Unit,
     onCopy: () -> Unit,
     onShare: () -> Unit,
+    onProofread: () -> Unit,
     onToggleLock: () -> Unit,
     onArchive: () -> Unit,
     onDelete: () -> Unit,
@@ -1777,6 +1841,14 @@ private fun EditorTopBar(
                     onClick = {
                         haptics.tap()
                         onShare()
+                    },
+                )
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.proofread_action)) },
+                    leadingIcon = { Icon(Icons.Rounded.AutoFixHigh, contentDescription = null) },
+                    onClick = {
+                        haptics.tap()
+                        onProofread()
                     },
                 )
                 if (canLock) {

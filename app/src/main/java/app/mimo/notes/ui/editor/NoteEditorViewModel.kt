@@ -9,6 +9,7 @@ import android.os.SystemClock
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -27,6 +28,9 @@ import app.mimo.notes.notifications.ReminderScheduler
 import app.mimo.notes.preferences.PreferencesRepository
 import app.mimo.notes.preferences.MimoSettings
 import app.mimo.notes.ui.text.HighlightTint
+import app.mimo.notes.ui.text.ProofreadKind
+import app.mimo.notes.ui.text.ProofreadResult
+import app.mimo.notes.ui.text.TextEdit
 import app.mimo.notes.ui.text.buildRichText
 import app.mimo.notes.ui.text.extractRichSpans
 import kotlinx.coroutines.CoroutineScope
@@ -214,6 +218,50 @@ class NoteEditorViewModel(
         if (value != body) pushUndo(body)
         body = value
         scheduleSave()
+    }
+
+    fun applyProofread(result: ProofreadResult): Boolean {
+        if (!isReady || body.text != result.original) return false
+        val old = body
+        pushUndo(old)
+        val spans = result.remapSpans(extractRichSpans(old.annotatedString, 17f))
+        body = TextFieldValue(
+            annotatedString = buildRichText(
+                text = result.corrected,
+                spans = spans,
+                baseSizeSp = 17f,
+            ),
+            selection = TextRange(result.corrected.length),
+        )
+        updateHistoryCounts()
+        scheduleSave()
+        return true
+    }
+
+    fun applySpellingFix(
+        originalText: String,
+        start: Int,
+        end: Int,
+        replacement: String,
+    ): Boolean {
+        if (body.text != originalText || start !in 0..end || end > originalText.length) {
+            return false
+        }
+        val corrected = originalText.replaceRange(start, end, replacement)
+        return applyProofread(
+            ProofreadResult(
+                original = originalText,
+                corrected = corrected,
+                edits = listOf(
+                    TextEdit(
+                        start = start,
+                        end = end,
+                        replacement = replacement,
+                        kind = ProofreadKind.SPELLING,
+                    )
+                ),
+            )
+        )
     }
 
     fun undoBody() {
