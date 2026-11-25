@@ -29,8 +29,10 @@ import app.mimo.notes.preferences.PreferencesRepository
 import app.mimo.notes.preferences.MimoSettings
 import app.mimo.notes.ui.text.HighlightTint
 import app.mimo.notes.ui.text.ProofreadKind
+import app.mimo.notes.ui.text.ProofreadPlan
 import app.mimo.notes.ui.text.ProofreadResult
 import app.mimo.notes.ui.text.TextEdit
+import app.mimo.notes.ui.text.remapSpansThroughEdit
 import app.mimo.notes.ui.text.buildRichText
 import app.mimo.notes.ui.text.extractRichSpans
 import kotlinx.coroutines.CoroutineScope
@@ -205,13 +207,63 @@ class NoteEditorViewModel(
     }
 
     fun updateBody(value: TextFieldValue) {
+        val old = body
+        val merged = when {
+            value.annotatedString.spanStyles.isNotEmpty() -> value
+            old.annotatedString.spanStyles.isEmpty() -> value
+            value.text == old.text -> TextFieldValue(
+                annotatedString = old.annotatedString,
+                selection = value.selection,
+                composition = value.composition,
+            )
+            else -> {
+                val prefix = commonPrefix(old.text, value.text)
+                val suffix = commonSuffix(old.text, value.text, prefix)
+                val removedEnd = old.text.length - suffix
+                val inserted = value.text.substring(prefix, value.text.length - suffix)
+                val spans = extractRichSpans(old.annotatedString, 17f)
+                val remapped = remapSpansThroughEdit(
+                    spans = spans,
+                    textLength = value.text.length,
+                    edit = TextEdit(
+                        start = prefix,
+                        end = removedEnd,
+                        replacement = inserted,
+                        kind = ProofreadKind.SPACING,
+                    ),
+                )
+                TextFieldValue(
+                    annotatedString = buildRichText(value.text, remapped, 17f),
+                    selection = value.selection,
+                    composition = value.composition,
+                )
+            }
+        }
         val now = System.currentTimeMillis()
-        if (value.text != body.text && now - lastTypingSnapshotAt > 700L) {
-            pushUndo(body)
+        if (merged.text != old.text && now - lastTypingSnapshotAt > 700L) {
+            pushUndo(old)
             lastTypingSnapshotAt = now
         }
-        body = value
+        body = merged
         scheduleSave()
+    }
+
+    private fun commonPrefix(first: String, second: String): Int {
+        val limit = minOf(first.length, second.length)
+        var index = 0
+        while (index < limit && first[index] == second[index]) index++
+        return index
+    }
+
+    private fun commonSuffix(first: String, second: String, prefix: Int): Int {
+        val limit = minOf(first.length, second.length) - prefix
+        var suffix = 0
+        while (suffix < limit &&
+            first[first.length - 1 - suffix] == second[second.length - 1 - suffix]
+        ) {
+            suffix++
+        }
+        return suffix
     }
 
     fun setBodyValue(value: TextFieldValue) {
@@ -220,18 +272,18 @@ class NoteEditorViewModel(
         scheduleSave()
     }
 
-    fun applyProofread(result: ProofreadResult): Boolean {
-        if (!isReady || body.text != result.original) return false
+    fun applyProofread(plan: ProofreadPlan): Boolean {
+        if (!isReady || body.text != plan.original) return false
         val old = body
         pushUndo(old)
-        val spans = result.remapSpans(extractRichSpans(old.annotatedString, 17f))
+        val spans = plan.remapSpans(extractRichSpans(old.annotatedString, 17f))
         body = TextFieldValue(
             annotatedString = buildRichText(
-                text = result.corrected,
+                text = plan.corrected,
                 spans = spans,
                 baseSizeSp = 17f,
             ),
-            selection = TextRange(result.corrected.length),
+            selection = TextRange(plan.corrected.length),
         )
         updateHistoryCounts()
         scheduleSave()
@@ -247,19 +299,31 @@ class NoteEditorViewModel(
         if (body.text != originalText || start !in 0..end || end > originalText.length) {
             return false
         }
-        val corrected = originalText.replaceRange(start, end, replacement)
+        val originalWord = originalText.substring(start, end)
+        val adjusted = if (originalWord.firstOrNull()?.isUpperCase() == true &&
+            replacement.firstOrNull()?.isLowerCase() == true
+        ) {
+            replacement.replaceFirstChar { it.uppercase() }
+        } else {
+            replacement
+        }
+        val corrected = originalText.replaceRange(start, end, adjusted)
         return applyProofread(
-            ProofreadResult(
-                original = originalText,
-                corrected = corrected,
-                edits = listOf(
-                    TextEdit(
-                        start = start,
-                        end = end,
-                        replacement = replacement,
-                        kind = ProofreadKind.SPELLING,
+            ProofreadPlan(
+                listOf(
+                    ProofreadResult(
+                        original = originalText,
+                        corrected = corrected,
+                        edits = listOf(
+                            TextEdit(
+                                start = start,
+                                end = end,
+                                replacement = replacement,
+                                kind = ProofreadKind.SPELLING,
+                            )
+                        ),
                     )
-                ),
+                )
             )
         )
     }

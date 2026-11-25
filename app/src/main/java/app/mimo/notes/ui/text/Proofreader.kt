@@ -30,31 +30,89 @@ data class ProofreadResult(
     fun remapSpans(spans: List<RichSpan>): List<RichSpan> {
         var current = spans
         edits.sortedByDescending { it.start }.forEach { edit ->
-            val delta = edit.replacement.length - (edit.end - edit.start)
-            current = current.mapNotNull { span ->
-                val mapped = when {
-                    span.end <= edit.start -> span
-                    span.start >= edit.end -> span.copy(
-                        start = span.start + delta,
-                        end = span.end + delta,
-                    )
-                    else -> {
-                        val start = if (span.start <= edit.start) span.start else edit.start
-                        val end = if (span.end >= edit.end) {
-                            span.end + delta
-                        } else {
-                            edit.start + edit.replacement.length
-                        }
-                        span.copy(start = start, end = end)
-                    }
-                }
-                val start = mapped.start.coerceIn(0, corrected.length)
-                val end = mapped.end.coerceIn(0, corrected.length)
-                mapped.copy(start = start, end = end).takeIf { start < end }
-            }
+            current = remapSpansThroughEdit(current, corrected.length, edit)
         }
         return current
     }
+}
+
+fun remapSpansThroughEdit(
+    spans: List<RichSpan>,
+    textLength: Int,
+    edit: TextEdit,
+): List<RichSpan> {
+    val delta = edit.replacement.length - (edit.end - edit.start)
+    return spans.mapNotNull { span ->
+        val mapped = when {
+            span.end <= edit.start -> span
+            span.start >= edit.end -> span.copy(
+                start = span.start + delta,
+                end = span.end + delta,
+            )
+            else -> {
+                val start = if (span.start <= edit.start) span.start else edit.start
+                val end = if (span.end >= edit.end) {
+                    span.end + delta
+                } else {
+                    edit.start + edit.replacement.length
+                }
+                span.copy(start = start, end = end)
+            }
+        }
+        val start = mapped.start.coerceIn(0, textLength)
+        val end = mapped.end.coerceIn(0, textLength)
+        mapped.copy(start = start, end = end).takeIf { start < end }
+    }
+}
+
+/**
+ * A sequence of safe transformations. Each step works on the text produced by
+ * the previous one, so deterministic rules and the punctuation model can be
+ * previewed and applied together while rich-text spans stay aligned.
+ */
+data class ProofreadPlan(val steps: List<ProofreadResult>) {
+    init {
+        require(steps.isNotEmpty()) { "A proofreading plan needs at least one step" }
+    }
+
+    val original: String get() = steps.first().original
+    val corrected: String get() = steps.last().corrected
+    val count: Int get() = steps.sumOf { it.edits.size }
+
+    fun countByKind(): Map<ProofreadKind, Int> =
+        steps.flatMap { it.edits }
+            .groupingBy { it.kind }
+            .eachCount()
+
+    fun remapSpans(spans: List<RichSpan>): List<RichSpan> =
+        steps.fold(spans) { current, step -> step.remapSpans(current) }
+}
+
+fun filterTextEdits(edits: List<TextEdit>): List<TextEdit> {
+    val filtered = mutableListOf<TextEdit>()
+    var lastEnd = -1
+    edits.distinctBy { Triple(it.start, it.end, it.replacement) }
+        .sortedWith(compareBy<TextEdit> { it.start }.thenByDescending { it.end })
+        .forEach { edit ->
+            if (edit.start >= lastEnd) {
+                filtered.add(edit)
+                if (edit.end > lastEnd) lastEnd = edit.end
+            }
+        }
+    return filtered
+}
+
+fun buildProofreadResult(original: String, edits: List<TextEdit>): ProofreadResult {
+    val filtered = filterTextEdits(edits)
+    val builder = StringBuilder(original)
+    filtered.sortedByDescending { it.start }.forEach { edit ->
+        builder.replace(edit.start, edit.end, edit.replacement)
+    }
+    return ProofreadResult(
+        original = original,
+        corrected = builder.toString(),
+        edits = filtered,
+    )
 }
 
 /**
@@ -138,23 +196,5 @@ fun proofreadText(text: String): ProofreadResult {
         match.groupValues[1] + match.groupValues[2].uppercase()
     }
 
-    val filtered = mutableListOf<TextEdit>()
-    var lastEnd = -1
-    edits.sortedWith(compareBy<TextEdit> { it.start }.thenByDescending { it.end })
-        .forEach { edit ->
-            if (edit.start >= lastEnd) {
-                filtered.add(edit)
-                lastEnd = edit.end
-            }
-        }
-
-    val builder = StringBuilder(text)
-    filtered.sortedByDescending { it.start }.forEach { edit ->
-        builder.replace(edit.start, edit.end, edit.replacement)
-    }
-    return ProofreadResult(
-        original = text,
-        corrected = builder.toString(),
-        edits = filtered,
-    )
+    return buildProofreadResult(text, edits)
 }

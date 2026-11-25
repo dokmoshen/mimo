@@ -94,6 +94,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -154,9 +155,11 @@ import app.mimo.notes.ui.components.PaperGrain
 import app.mimo.notes.ui.components.ReminderSheet
 import app.mimo.notes.ui.text.InlineFormat
 import app.mimo.notes.ui.text.ListFormat
-import app.mimo.notes.ui.text.ProofreadResult
+import app.mimo.notes.ui.text.LocalSpellChecker
+import app.mimo.notes.ui.text.ModelStatus
+import app.mimo.notes.ui.text.ProofreadPlan
+import app.mimo.notes.ui.text.PunctuationModel
 import app.mimo.notes.ui.text.SpellingIssue
-import app.mimo.notes.ui.text.SystemSpellChecker
 import app.mimo.notes.ui.text.applyHeading
 import app.mimo.notes.ui.text.applyInlineFormat
 import app.mimo.notes.ui.text.headingScale
@@ -175,7 +178,9 @@ import app.mimo.notes.ui.util.formatReminder
 import app.mimo.notes.ui.util.isOverdue
 import app.mimo.notes.ui.util.shareNote
 import app.mimo.notes.util.BiometricAuth
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.launch
 import java.io.File
@@ -282,9 +287,12 @@ fun NoteEditorScreen(
     var showPhotoOptions by remember { mutableStateOf(false) }
     var showDeleteConfirm by remember { mutableStateOf(false) }
     var showMore by remember { mutableStateOf(false) }
-    var proofreadResult by remember { mutableStateOf<ProofreadResult?>(null) }
+    var proofreadPlan by remember { mutableStateOf<ProofreadPlan?>(null) }
     var spellingIssues by remember { mutableStateOf<List<SpellingIssue>>(emptyList()) }
     var spellingLoading by remember { mutableStateOf(false) }
+    var modelLoading by remember { mutableStateOf(false) }
+    var modelNote by remember { mutableStateOf<String?>(null) }
+    var proofreadRequest by remember { mutableIntStateOf(0) }
     var pinRequest by remember { mutableStateOf<EditorPinRequest?>(null) }
     var drawingEditor by remember { mutableStateOf(false) }
     var openImage by remember { mutableStateOf<String?>(null) }
@@ -494,18 +502,41 @@ fun NoteEditorScreen(
             showMessage(context.getString(R.string.proofread_empty))
             return
         }
-        proofreadResult = proofreadText(text)
-    }
-
-    LaunchedEffect(proofreadResult) {
-        val result = proofreadResult ?: return@LaunchedEffect
+        proofreadPlan = ProofreadPlan(listOf(proofreadText(text)))
         spellingIssues = emptyList()
         spellingLoading = true
-        val issues = withTimeoutOrNull(2500) {
-            SystemSpellChecker.check(context, result.original)
-        } ?: emptyList()
+        modelLoading = true
+        modelNote = null
+        proofreadRequest++
+    }
+
+    LaunchedEffect(proofreadRequest) {
+        if (proofreadRequest == 0) return@LaunchedEffect
+        val plan = proofreadPlan ?: return@LaunchedEffect
+        val original = plan.original
+        val issues = withContext(Dispatchers.Default) {
+            LocalSpellChecker.check(context, original)
+        }
+        if (proofreadPlan?.original != original) return@LaunchedEffect
         spellingIssues = issues
         spellingLoading = false
+
+        val model = withTimeoutOrNull(15000) {
+            PunctuationModel.check(context, plan.corrected)
+        }
+        if (proofreadPlan?.original != original) return@LaunchedEffect
+        if (model?.status == ModelStatus.APPLIED && model.result != null) {
+            val current = proofreadPlan
+            if (current != null && current.corrected == model.result.original) {
+                proofreadPlan = ProofreadPlan(current.steps + model.result)
+            }
+        }
+        modelLoading = false
+        modelNote = if (model?.status == ModelStatus.UNAVAILABLE) {
+            context.getString(R.string.proofread_model_unavailable)
+        } else {
+            null
+        }
     }
 
     fun finishClose() {
@@ -1024,28 +1055,31 @@ fun NoteEditorScreen(
         )
     }
 
-    proofreadResult?.let { result ->
+    proofreadPlan?.let { plan ->
         ProofreadDialog(
-            result = result,
+            plan = plan,
             spellingIssues = spellingIssues,
             spellingLoading = spellingLoading,
-            onDismiss = { proofreadResult = null },
+            modelLoading = modelLoading,
+            modelNote = modelNote,
+            onDismiss = { proofreadPlan = null },
             onApply = {
-                if (viewModel.applyProofread(result)) {
+                if (viewModel.applyProofread(plan)) {
                     haptics.confirm()
                     showMessage(context.getString(R.string.proofread_applied))
                 } else {
                     haptics.reject()
                     showMessage(context.getString(R.string.proofread_stale))
                 }
-                proofreadResult = null
+                proofreadPlan = null
             },
             onSpellingFix = { issue, suggestion ->
-                if (viewModel.applySpellingFix(result.original, issue.start, issue.end, suggestion)) {
+                if (viewModel.applySpellingFix(plan.original, issue.start, issue.end, suggestion)) {
                     haptics.confirm()
                     showMessage(context.getString(R.string.proofread_applied))
-                    proofreadResult = null
+                    proofreadPlan = null
                     spellingIssues = emptyList()
+                    modelLoading = false
                 } else {
                     haptics.reject()
                     showMessage(context.getString(R.string.proofread_stale))

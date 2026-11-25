@@ -20,3 +20,14 @@ License 1.1. Тексты лицензий находятся в:
 Скриншоты и демонстрационные изображения можно использовать для
 иллюстрации проекта Mimo. Не добавляйте в публичные сборки личные
 заметки, фотографии и другие пользовательские данные.
+
+Проверка текста использует следующие компоненты (все — MIT):
+- RUPunct_small — https://huggingface.co/RUPunct/RUPunct_small
+- INT8 ONNX-экспорт — https://huggingface.co/ekhodzitsky/rupunct-small-onnx
+- ONNX Runtime — https://github.com/microsoft/onnxruntime
+- Список русских слов — https://github.com/danakt/russian-words
+- Частотный словарь — https://github.com/hermitdave/FrequencyWords
+
+Тексты лицензий находятся в app/src/main/assets/licenses/:
+RUPunct-MIT.txt, ONNXRuntime-MIT.txt, RussianWords-MIT.txt,
+RussianFrequency-MIT.txt.

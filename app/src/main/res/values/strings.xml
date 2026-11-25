@@ -307,6 +307,8 @@
     <string name="proofread_typography">Типографика</string>
     <string name="proofread_spelling">Орфография</string>
     <string name="proofread_spelling_loading">Проверяем орфографию…</string>
+    <string name="proofread_model_loading">Проверяем пунктуацию моделью…</string>
+    <string name="proofread_model_unavailable">Модель пунктуации недоступна на этом устройстве</string>
     <string name="settings_security">Приватность</string>
     <string name="security_note_lock">Блокировка заметок</string>
     <string name="security_note_lock_desc">Биометрия, блокировка экрана или PIN-код для заблокированных заметок</string>

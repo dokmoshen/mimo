@@ -25,20 +25,22 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import app.mimo.notes.R
 import app.mimo.notes.ui.text.ProofreadKind
-import app.mimo.notes.ui.text.ProofreadResult
+import app.mimo.notes.ui.text.ProofreadPlan
 import app.mimo.notes.ui.text.SpellingIssue
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun ProofreadDialog(
-    result: ProofreadResult,
+    plan: ProofreadPlan,
     spellingIssues: List<SpellingIssue> = emptyList(),
     spellingLoading: Boolean = false,
+    modelLoading: Boolean = false,
+    modelNote: String? = null,
     onDismiss: () -> Unit,
     onApply: () -> Unit,
     onSpellingFix: (SpellingIssue, String) -> Unit = { _, _ -> },
 ) {
-    val counts = result.countByKind()
+    val counts = plan.countByKind()
     val summary = buildList {
         counts[ProofreadKind.SPACING]?.let { add("${stringResource(R.string.proofread_spacing)}: $it") }
         counts[ProofreadKind.PUNCTUATION]?.let { add("${stringResource(R.string.proofread_punctuation)}: $it") }
@@ -54,9 +56,9 @@ fun ProofreadDialog(
         title = { Text(stringResource(R.string.proofread_title)) },
         text = {
             Column {
-                if (result.count > 0) {
+                if (plan.count > 0) {
                     Text(
-                        stringResource(R.string.proofread_found, result.count),
+                        stringResource(R.string.proofread_found, plan.count),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface,
                     )
@@ -75,6 +77,22 @@ fun ProofreadDialog(
                         ),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface,
+                    )
+                }
+
+                if (modelLoading) {
+                    Spacer(Modifier.height(10.dp))
+                    Text(
+                        stringResource(R.string.proofread_model_loading),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                } else if (modelNote != null) {
+                    Spacer(Modifier.height(10.dp))
+                    Text(
+                        modelNote,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
 
@@ -125,7 +143,7 @@ fun ProofreadDialog(
                     }
                 }
 
-                if (result.count > 0) {
+                if (plan.count > 0) {
                     Spacer(Modifier.height(14.dp))
                     Text(
                         stringResource(R.string.proofread_preview),
@@ -141,7 +159,7 @@ fun ProofreadDialog(
                             .heightIn(max = 240.dp),
                     ) {
                         Text(
-                            result.corrected,
+                            plan.corrected,
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier
@@ -159,7 +177,7 @@ fun ProofreadDialog(
             }
         },
         confirmButton = {
-            if (result.count > 0) {
+            if (plan.count > 0) {
                 TextButton(onClick = onApply) {
                     Text(stringResource(R.string.proofread_apply), fontWeight = FontWeight.Bold)
                 }
