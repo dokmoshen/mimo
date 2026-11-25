@@ -88,6 +88,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -97,7 +98,9 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.BlurredEdgeTreatment
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
@@ -133,6 +136,7 @@ import app.mimo.notes.ui.components.backdropBottomColor
 import app.mimo.notes.ui.components.MimoChip
 import app.mimo.notes.ui.components.LabelEditDialog
 import app.mimo.notes.ui.components.LabelPickerSheet
+import app.mimo.notes.ui.components.LocalNoteMenuVisibility
 import app.mimo.notes.ui.components.MimoBackdrop
 import app.mimo.notes.ui.components.MimoIllustration
 import app.mimo.notes.ui.components.AnimatedMimoMark
@@ -193,6 +197,12 @@ fun NotesScreen(
     }
     val searchHasCriteria = searchQuery.isNotBlank() || searchFilter.isActive
     var showSearchFilters by remember { mutableStateOf(false) }
+    var openMenuNoteId by remember { mutableStateOf<Long?>(null) }
+    val noteMenuBlur by animateDpAsState(
+        targetValue = if (openMenuNoteId != null) 12.dp else 0.dp,
+        animationSpec = tween(180),
+        label = "noteMenuBlur",
+    )
     var pinPrompt by remember { mutableStateOf<NotesPinRequest?>(null) }
     var headerCollapsed by rememberSaveable { mutableStateOf(false) }
     var scrollDownAccumulator by remember { mutableFloatStateOf(0f) }
@@ -481,143 +491,157 @@ fun NotesScreen(
         }
     }
 
-    MimoBackdrop {
-        Box(Modifier.fillMaxSize()) {
-            bodyContent(Modifier.fillMaxSize())
-            TransparentTopFog(headerSpace, Modifier.align(Alignment.TopCenter))
-            if (selection.isNotEmpty()) {
-                SelectionHeader(
-                    count = selection.size,
-                    onClose = { viewModel.clearSelection() },
-                    onSelectAll = { viewModel.selectAll(visibleIds) },
-                    modifier = Modifier
-                        .align(Alignment.TopCenter)
-                        .statusBarsPadding(),
-                )
-            } else if (isHome) {
-                HomeHeader(
-                    searchActive = searchActive,
-                    query = searchQuery,
-                    onQueryChange = viewModel::updateSearchQuery,
-                    onOpenSearch = viewModel::openSearch,
-                    onCloseSearch = viewModel::closeSearch,
-                    onFilterClick = { showSearchFilters = true },
-                    collapsed = headerCollapsed,
-                    focusRequester = searchFocus,
-                    modifier = Modifier
-                        .align(Alignment.TopCenter)
-                        .statusBarsPadding(),
-                )
+    CompositionLocalProvider(
+        LocalNoteMenuVisibility provides { noteId, open ->
+            openMenuNoteId = if (open) {
+                noteId
             } else {
-                TransparentScreenHeader(
-                    title = secondaryTitle,
-                    subtitle = secondarySubtitle,
-                    titleDot = secondaryTitleDot,
-                    onBack = onBack,
-                    modifier = Modifier.align(Alignment.TopCenter),
-                    actions = {
-                        when (collection) {
-                            NotesCollection.TRASH -> {
-                                if (source.isNotEmpty()) {
-                                    CircleActionButton(
-                                        icon = Icons.Rounded.DeleteSweep,
-                                        contentDescription = stringResource(R.string.empty_trash),
-                                        onClick = { confirmEmptyTrash = true },
-                                    )
-                                }
-                            }
-                            NotesCollection.LABEL -> {
-                                Box {
-                                    CircleActionButton(
-                                        icon = Icons.Rounded.MoreVert,
-                                        contentDescription = stringResource(R.string.more),
-                                        onClick = { labelMenuExpanded = true },
-                                    )
-                                    DropdownMenu(
-                                        expanded = labelMenuExpanded,
-                                        onDismissRequest = { labelMenuExpanded = false },
-                                    ) {
-                                        DropdownMenuItem(
-                                            text = { Text(stringResource(R.string.rename_label)) },
-                                            onClick = {
-                                                haptics.tap()
-                                                labelMenuExpanded = false
-                                                showLabelRename = true
-                                            },
-                                        )
-                                        DropdownMenuItem(
-                                            text = { Text(stringResource(R.string.delete_label)) },
-                                            onClick = {
-                                                haptics.reject()
-                                                labelMenuExpanded = false
-                                                showLabelDelete = true
-                                            },
+                openMenuNoteId?.takeUnless { it == noteId }
+            }
+        }
+    ) {
+        MimoBackdrop {
+            Box(Modifier.fillMaxSize()) {
+                bodyContent(
+                    Modifier
+                        .fillMaxSize()
+                        .blur(noteMenuBlur, BlurredEdgeTreatment.Unbounded)
+                )
+                TransparentTopFog(headerSpace, Modifier.align(Alignment.TopCenter))
+                if (selection.isNotEmpty()) {
+                    SelectionHeader(
+                        count = selection.size,
+                        onClose = { viewModel.clearSelection() },
+                        onSelectAll = { viewModel.selectAll(visibleIds) },
+                        modifier = Modifier
+                            .align(Alignment.TopCenter)
+                            .statusBarsPadding(),
+                    )
+                } else if (isHome) {
+                    HomeHeader(
+                        searchActive = searchActive,
+                        query = searchQuery,
+                        onQueryChange = viewModel::updateSearchQuery,
+                        onOpenSearch = viewModel::openSearch,
+                        onCloseSearch = viewModel::closeSearch,
+                        onFilterClick = { showSearchFilters = true },
+                        collapsed = headerCollapsed,
+                        focusRequester = searchFocus,
+                        modifier = Modifier
+                            .align(Alignment.TopCenter)
+                            .statusBarsPadding(),
+                    )
+                } else {
+                    TransparentScreenHeader(
+                        title = secondaryTitle,
+                        subtitle = secondarySubtitle,
+                        titleDot = secondaryTitleDot,
+                        onBack = onBack,
+                        modifier = Modifier.align(Alignment.TopCenter),
+                        actions = {
+                            when (collection) {
+                                NotesCollection.TRASH -> {
+                                    if (source.isNotEmpty()) {
+                                        CircleActionButton(
+                                            icon = Icons.Rounded.DeleteSweep,
+                                            contentDescription = stringResource(R.string.empty_trash),
+                                            onClick = { confirmEmptyTrash = true },
                                         )
                                     }
                                 }
+                                NotesCollection.LABEL -> {
+                                    Box {
+                                        CircleActionButton(
+                                            icon = Icons.Rounded.MoreVert,
+                                            contentDescription = stringResource(R.string.more),
+                                            onClick = { labelMenuExpanded = true },
+                                        )
+                                        DropdownMenu(
+                                            expanded = labelMenuExpanded,
+                                            onDismissRequest = { labelMenuExpanded = false },
+                                        ) {
+                                            DropdownMenuItem(
+                                                text = { Text(stringResource(R.string.rename_label)) },
+                                                onClick = {
+                                                    haptics.tap()
+                                                    labelMenuExpanded = false
+                                                    showLabelRename = true
+                                                },
+                                            )
+                                            DropdownMenuItem(
+                                                text = { Text(stringResource(R.string.delete_label)) },
+                                                onClick = {
+                                                    haptics.reject()
+                                                    labelMenuExpanded = false
+                                                    showLabelDelete = true
+                                                },
+                                            )
+                                        }
+                                    }
+                                }
+                                else -> Unit
                             }
-                            else -> Unit
-                        }
-                    },
+                        },
+                    )
+                }
+            }
+
+            AnimatedVisibility(
+                visible = !searchActive,
+                enter = fadeIn(tween(240)),
+                exit = fadeOut(tween(160)),
+                modifier = Modifier.align(Alignment.BottomCenter),
+            ) {
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .height(190.dp)
+                        .background(
+                            Brush.verticalGradient(
+                                0f to Color.Transparent,
+                                0.5f to fogColor.copy(alpha = 0.30f),
+                                0.8f to fogColor.copy(alpha = 0.82f),
+                                1f to fogColor,
+                            )
+                        )
                 )
             }
-        }
-
-        AnimatedVisibility(
-            visible = !searchActive,
-            enter = fadeIn(tween(240)),
-            exit = fadeOut(tween(160)),
-            modifier = Modifier.align(Alignment.BottomCenter),
-        ) {
-            Box(
-                Modifier
-                    .fillMaxWidth()
-                    .height(190.dp)
-                    .background(
-                        Brush.verticalGradient(
-                            0f to Color.Transparent,
-                            0.5f to fogColor.copy(alpha = 0.30f),
-                            0.8f to fogColor.copy(alpha = 0.82f),
-                            1f to fogColor,
-                        )
-                    )
-            )
-        }
-        AnimatedVisibility(
-            visible = selection.isNotEmpty(),
-            enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
-            exit = slideOutVertically(targetOffsetY = { it }) + fadeOut(),
-            modifier = Modifier.align(Alignment.BottomCenter),
-        ) {
-            SelectionActionBar(
-                collection = collection,
-                selectionNotes = selectionNotes,
-                onPin = { pinnedNow ->
-                    viewModel.pin(selection, pinnedNow)
-                    viewModel.clearSelection()
-                },
-                onColor = { colorTargets = selection },
-                onLabels = { labelTargets = selection },
-                onArchive = {
-                    viewModel.archive(selection, true)
-                },
-                onUnarchive = {
-                    viewModel.archive(selection, false)
-                },
-                onRestore = { viewModel.restore(selection) },
-                onTrash = { viewModel.moveToTrash(selection) },
-                onDeleteForever = { deleteForeverTargets = selection },
-                onShare = { shareNotes(context, selectionNotes) },
-                onCopy = { selectionNotes.forEach { viewModel.duplicate(it.id) } },
-                onLock = { lock ->
-                    authenticateThen(selection, lock)
-                },
-                canLock = canLock,
-                modifier = Modifier
-                    .navigationBarsPadding()
-                    .padding(horizontal = 20.dp)
-                    .padding(bottom = 10.dp),
-            )
+            AnimatedVisibility(
+                visible = selection.isNotEmpty(),
+                enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
+                exit = slideOutVertically(targetOffsetY = { it }) + fadeOut(),
+                modifier = Modifier.align(Alignment.BottomCenter),
+            ) {
+                SelectionActionBar(
+                    collection = collection,
+                    selectionNotes = selectionNotes,
+                    onPin = { pinnedNow ->
+                        viewModel.pin(selection, pinnedNow)
+                        viewModel.clearSelection()
+                    },
+                    onColor = { colorTargets = selection },
+                    onLabels = { labelTargets = selection },
+                    onArchive = {
+                        viewModel.archive(selection, true)
+                    },
+                    onUnarchive = {
+                        viewModel.archive(selection, false)
+                    },
+                    onRestore = { viewModel.restore(selection) },
+                    onTrash = { viewModel.moveToTrash(selection) },
+                    onDeleteForever = { deleteForeverTargets = selection },
+                    onShare = { shareNotes(context, selectionNotes) },
+                    onCopy = { selectionNotes.forEach { viewModel.duplicate(it.id) } },
+                    onLock = { lock ->
+                        authenticateThen(selection, lock)
+                    },
+                    canLock = canLock,
+                    modifier = Modifier
+                        .navigationBarsPadding()
+                        .padding(horizontal = 20.dp)
+                        .padding(bottom = 10.dp),
+                )
+            }
         }
     }
 
