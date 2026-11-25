@@ -50,6 +50,7 @@
     <string name="welcome_import">Импортировать из Keep</string>
     <string name="welcome_hint">Закрепляйте важное, добавляйте метки и напоминания.</string>
     <string name="reader_edit">Редактировать</string>
+    <string name="reader_mode">Режим чтения</string>
     <string name="archive_empty_title">Архив пуст</string>
     <string name="archive_empty_body">Сюда попадают заметки, которые вы убрали с главного экрана.</string>
     <string name="trash_empty_title">Корзина пуста</string>
@@ -297,6 +298,9 @@
     <string name="proofread_rules_clean">Пробелы и пунктуация в порядке</string>
     <string name="proofread_empty">Нет текста для проверки</string>
     <string name="proofread_preview">Предпросмотр</string>
+    <string name="proofread_before">Было</string>
+    <string name="proofread_after">Стало</string>
+    <string name="proofread_gap_marker">▏ — пропуск</string>
     <string name="proofread_keep_format">Форматирование текста сохранится</string>
     <string name="proofread_apply">Исправить</string>
     <string name="proofread_applied">Текст исправлен</string>

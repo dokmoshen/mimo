@@ -48,9 +48,6 @@ import androidx.compose.material.icons.rounded.Restore
 import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material.icons.rounded.Unarchive
 import androidx.compose.material.icons.rounded.LockOpen
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -934,70 +931,83 @@ private fun NoteActionsMenu(
     onAction: (NoteCardAction) -> Unit,
 ) {
     val context = LocalContext.current
-    DropdownMenu(expanded = expanded, onDismissRequest = onDismiss) {
-        when {
-            note.isTrashed -> {
-                MenuItem(Icons.Rounded.Restore, context.getString(R.string.restore_note)) {
-                    onAction(NoteCardAction.RESTORE)
+    ExpressiveMenu(expanded = expanded, onDismissRequest = onDismiss) {
+        if (note.isTrashed) {
+            ExpressiveMenuGroup(index = 0, count = 1) {
+                ExpressiveMenuItem(
+                    icon = Icons.Rounded.Restore,
+                    label = context.getString(R.string.restore_note),
+                    index = 0,
+                    count = 2,
+                ) { onAction(NoteCardAction.RESTORE) }
+                ExpressiveMenuItem(
+                    icon = Icons.Rounded.DeleteForever,
+                    label = context.getString(R.string.delete_forever),
+                    index = 1,
+                    count = 2,
+                    destructive = true,
+                ) { onAction(NoteCardAction.DELETE_FOREVER) }
+            }
+        } else {
+            val primary = buildList {
+                if (note.isArchived) {
+                    add(NoteMenuAction(Icons.Rounded.Unarchive, context.getString(R.string.unarchive_note), NoteCardAction.UNARCHIVE))
+                } else {
+                    add(
+                        NoteMenuAction(
+                            Icons.Rounded.PushPin,
+                            context.getString(if (note.isPinned) R.string.unpin_note else R.string.pin_note),
+                            if (note.isPinned) NoteCardAction.UNPIN else NoteCardAction.PIN,
+                        )
+                    )
                 }
-                MenuItem(Icons.Rounded.DeleteForever, context.getString(R.string.delete_forever)) {
-                    onAction(NoteCardAction.DELETE_FOREVER)
+                add(NoteMenuAction(Icons.Rounded.ContentCopy, context.getString(R.string.copy_note), NoteCardAction.COPY))
+                add(NoteMenuAction(Icons.Rounded.Label, context.getString(R.string.labels_action), NoteCardAction.LABELS))
+                add(NoteMenuAction(Icons.Rounded.ColorLens, context.getString(R.string.change_color), NoteCardAction.COLOR))
+                add(NoteMenuAction(Icons.Rounded.Share, context.getString(R.string.share_note), NoteCardAction.SHARE))
+                if (showLockAction) {
+                    add(
+                        NoteMenuAction(
+                            if (note.isLocked) Icons.Rounded.LockOpen else Icons.Rounded.Lock,
+                            context.getString(if (note.isLocked) R.string.unlock_note else R.string.lock_note),
+                            if (note.isLocked) NoteCardAction.UNLOCK else NoteCardAction.LOCK,
+                        )
+                    )
                 }
             }
-            else -> {
-                if (note.isArchived) {
-                    MenuItem(Icons.Rounded.Unarchive, context.getString(R.string.unarchive_note)) {
-                        onAction(NoteCardAction.UNARCHIVE)
-                    }
-                } else {
-                    MenuItem(
-                        if (note.isPinned) Icons.Rounded.PushPin else Icons.Rounded.PushPin,
-                        context.getString(if (note.isPinned) R.string.unpin_note else R.string.pin_note),
+            ExpressiveMenuGroup(index = 0, count = 2) {
+                primary.forEachIndexed { index, item ->
+                    ExpressiveMenuItem(
+                        icon = item.icon,
+                        label = item.label,
+                        index = index,
+                        count = primary.size,
                     ) {
-                        onAction(if (note.isPinned) NoteCardAction.UNPIN else NoteCardAction.PIN)
+                        onAction(item.action)
                     }
                 }
-                MenuItem(Icons.Rounded.ContentCopy, context.getString(R.string.copy_note)) {
-                    onAction(NoteCardAction.COPY)
-                }
-                MenuItem(Icons.Rounded.Label, context.getString(R.string.labels_action)) {
-                    onAction(NoteCardAction.LABELS)
-                }
-                MenuItem(Icons.Rounded.ColorLens, context.getString(R.string.change_color)) {
-                    onAction(NoteCardAction.COLOR)
-                }
-                MenuItem(Icons.Rounded.Share, context.getString(R.string.share_note)) {
-                    onAction(NoteCardAction.SHARE)
-                }
-                if (showLockAction) {
-                    MenuItem(
-                        if (note.isLocked) Icons.Rounded.LockOpen else Icons.Rounded.Lock,
-                        context.getString(if (note.isLocked) R.string.unlock_note else R.string.lock_note),
-                    ) {
-                        onAction(if (note.isLocked) NoteCardAction.UNLOCK else NoteCardAction.LOCK)
-                    }
-                }
-                HorizontalDivider(Modifier.padding(vertical = 4.dp))
-                MenuItem(Icons.Rounded.Archive, context.getString(R.string.archive_note)) {
-                    onAction(NoteCardAction.ARCHIVE)
-                }
-                MenuItem(Icons.Rounded.Delete, context.getString(R.string.delete)) {
-                    onAction(NoteCardAction.TRASH)
-                }
+            }
+            ExpressiveMenuGroup(index = 1, count = 2) {
+                ExpressiveMenuItem(
+                    icon = Icons.Rounded.Archive,
+                    label = context.getString(R.string.archive_note),
+                    index = 0,
+                    count = 2,
+                ) { onAction(NoteCardAction.ARCHIVE) }
+                ExpressiveMenuItem(
+                    icon = Icons.Rounded.Delete,
+                    label = context.getString(R.string.delete),
+                    index = 1,
+                    count = 2,
+                    destructive = true,
+                ) { onAction(NoteCardAction.TRASH) }
             }
         }
     }
 }
 
-@Composable
-private fun MenuItem(icon: ImageVector, label: String, onClick: () -> Unit) {
-    val haptics = LocalMimoHaptics.current
-    DropdownMenuItem(
-        text = { Text(label, style = MaterialTheme.typography.labelLarge) },
-        leadingIcon = { Icon(icon, contentDescription = null, modifier = Modifier.size(20.dp)) },
-        onClick = {
-            haptics.tap()
-            onClick()
-        },
-    )
-}
+private data class NoteMenuAction(
+    val icon: ImageVector,
+    val label: String,
+    val action: NoteCardAction,
+)

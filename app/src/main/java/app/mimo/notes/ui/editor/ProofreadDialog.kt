@@ -19,6 +19,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -27,6 +28,7 @@ import app.mimo.notes.R
 import app.mimo.notes.ui.text.ProofreadKind
 import app.mimo.notes.ui.text.ProofreadPlan
 import app.mimo.notes.ui.text.SpellingIssue
+import app.mimo.notes.ui.text.buildProofreadDiff
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -144,6 +146,16 @@ fun ProofreadDialog(
                 }
 
                 if (plan.count > 0) {
+                    val errorColor = MaterialTheme.colorScheme.error
+                    val changeColor = MaterialTheme.colorScheme.primary
+                    val diff = remember(plan.original, plan.corrected, errorColor, changeColor) {
+                        buildProofreadDiff(
+                            original = plan.original,
+                            corrected = plan.corrected,
+                            errorColor = errorColor,
+                            changeColor = changeColor,
+                        )
+                    }
                     Spacer(Modifier.height(14.dp))
                     Text(
                         stringResource(R.string.proofread_preview),
@@ -152,20 +164,49 @@ fun ProofreadDialog(
                     )
                     Spacer(Modifier.height(6.dp))
                     Surface(
-                        shape = RoundedCornerShape(18.dp),
+                        shape = RoundedCornerShape(20.dp),
                         color = MaterialTheme.colorScheme.surfaceContainerLow,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .heightIn(max = 240.dp),
+                            .heightIn(max = 280.dp),
                     ) {
-                        Text(
-                            plan.corrected,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurface,
+                        Column(
                             modifier = Modifier
                                 .verticalScroll(rememberScrollState())
                                 .padding(14.dp),
-                        )
+                        ) {
+                            Text(
+                                stringResource(R.string.proofread_before),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.error,
+                            )
+                            Spacer(Modifier.height(4.dp))
+                            Text(
+                                diff.original,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurface,
+                            )
+                            Spacer(Modifier.height(12.dp))
+                            Text(
+                                stringResource(R.string.proofread_after),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.primary,
+                            )
+                            Spacer(Modifier.height(4.dp))
+                            Text(
+                                diff.corrected,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurface,
+                            )
+                            if (diff.hasGapMarker) {
+                                Spacer(Modifier.height(8.dp))
+                                Text(
+                                    stringResource(R.string.proofread_gap_marker),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        }
                     }
                     Spacer(Modifier.height(10.dp))
                     Text(

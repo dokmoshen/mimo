@@ -73,6 +73,7 @@ import androidx.compose.material.icons.rounded.Image
 import androidx.compose.material.icons.rounded.PhotoCamera
 import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material.icons.rounded.LockOpen
+import androidx.compose.material.icons.rounded.MenuBook
 import androidx.compose.material.icons.rounded.Mic
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.Notifications
@@ -80,8 +81,6 @@ import androidx.compose.material.icons.rounded.PushPin
 import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -117,6 +116,7 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.LocalView
@@ -151,6 +151,9 @@ import app.mimo.notes.ui.components.LocalImage
 import app.mimo.notes.ui.components.MimoBackdrop
 import app.mimo.notes.ui.components.MimoLogo
 import app.mimo.notes.ui.components.PinEntryDialog
+import app.mimo.notes.ui.components.ExpressiveMenu
+import app.mimo.notes.ui.components.ExpressiveMenuGroup
+import app.mimo.notes.ui.components.ExpressiveMenuItem
 import app.mimo.notes.ui.components.PaperGrain
 import app.mimo.notes.ui.components.ReminderSheet
 import app.mimo.notes.ui.text.InlineFormat
@@ -230,6 +233,7 @@ fun NoteEditorScreen(
     val muted = NoteColors.mutedContent()
     val bodyFocus = remember { FocusRequester() }
     val keyboardController = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
     val contentScroll = rememberScrollState()
     val chromeState = remember { mutableStateOf(true) }
     val chromeVisible by chromeState
@@ -320,6 +324,13 @@ fun NoteEditorScreen(
                 keyboardController?.show()
             }
         }
+    }
+
+    fun enterReadMode() {
+        readMode = true
+        showMore = false
+        focusManager.clearFocus()
+        keyboardController?.hide()
     }
 
     fun showMessage(message: String) {
@@ -755,6 +766,7 @@ fun NoteEditorScreen(
                     onBack = ::closeEditor,
                     onTogglePin = viewModel::togglePin,
                     onEdit = ::enterEditMode,
+                    onRead = ::enterReadMode,
                     onMore = { showMore = !showMore },
                     onDismissMore = { showMore = false },
                     onCopy = {
@@ -1683,6 +1695,7 @@ private fun EditorTopBar(
     onBack: () -> Unit,
     onTogglePin: () -> Unit,
     onEdit: () -> Unit,
+    onRead: () -> Unit,
     onMore: () -> Unit,
     onDismissMore: () -> Unit,
     onCopy: () -> Unit,
@@ -1772,26 +1785,39 @@ private fun EditorTopBar(
             }
         }
         Spacer(Modifier.weight(1f))
-        if (readMode) {
-            Surface(
-                shape = CircleShape,
-                color = MaterialTheme.colorScheme.primaryContainer,
-                modifier = Modifier.size(44.dp),
-            ) {
-                IconButton(onClick = {
+        Surface(
+            shape = CircleShape,
+            color = if (readMode) {
+                MaterialTheme.colorScheme.primaryContainer
+            } else {
+                contentColor.copy(alpha = 0.06f)
+            },
+            modifier = Modifier.size(44.dp),
+        ) {
+            IconButton(onClick = {
+                if (readMode) {
                     haptics.confirm()
                     onEdit()
-                }) {
-                    Icon(
-                        Icons.Rounded.Edit,
-                        contentDescription = stringResource(R.string.reader_edit),
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                        modifier = Modifier.size(19.dp),
-                    )
+                } else {
+                    haptics.tap()
+                    onRead()
                 }
+            }) {
+                Icon(
+                    if (readMode) Icons.Rounded.Edit else Icons.Rounded.MenuBook,
+                    contentDescription = stringResource(
+                        if (readMode) R.string.reader_edit else R.string.reader_mode
+                    ),
+                    tint = if (readMode) {
+                        MaterialTheme.colorScheme.onPrimaryContainer
+                    } else {
+                        contentColor.copy(alpha = 0.72f)
+                    },
+                    modifier = Modifier.size(19.dp),
+                )
             }
-            Spacer(Modifier.width(8.dp))
         }
+        Spacer(Modifier.width(8.dp))
         Surface(
             shape = CircleShape,
             color = if (isPinned) contentColor.copy(alpha = 0.16f) else contentColor.copy(alpha = 0.06f),
@@ -1860,68 +1886,53 @@ private fun EditorTopBar(
                     )
                 }
             }
-            DropdownMenu(expanded = showMore, onDismissRequest = onDismissMore) {
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.copy_note)) },
-                    leadingIcon = { Icon(Icons.Rounded.ContentCopy, contentDescription = null) },
-                    onClick = {
-                        haptics.tap()
-                        onCopy()
-                    },
-                )
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.share_note)) },
-                    leadingIcon = { Icon(Icons.Rounded.Share, contentDescription = null) },
-                    onClick = {
-                        haptics.tap()
-                        onShare()
-                    },
-                )
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.proofread_action)) },
-                    leadingIcon = { Icon(Icons.Rounded.AutoFixHigh, contentDescription = null) },
-                    onClick = {
-                        haptics.tap()
-                        onProofread()
-                    },
-                )
-                if (canLock) {
-                    DropdownMenuItem(
-                        text = {
-                            Text(
-                                stringResource(
-                                    if (isLocked) R.string.unlock_note else R.string.lock_note
-                                )
-                            )
-                        },
-                        leadingIcon = {
-                            Icon(
-                                if (isLocked) Icons.Rounded.LockOpen else Icons.Rounded.Lock,
-                                contentDescription = null,
-                            )
-                        },
-                        onClick = {
-                            haptics.toggle(!isLocked)
-                            onToggleLock()
-                        },
-                    )
+            ExpressiveMenu(expanded = showMore, onDismissRequest = onDismissMore) {
+                val primaryCount = 3 + if (canLock) 1 else 0
+                ExpressiveMenuGroup(index = 0, count = 2) {
+                    ExpressiveMenuItem(
+                        icon = Icons.Rounded.ContentCopy,
+                        label = stringResource(R.string.copy_note),
+                        index = 0,
+                        count = primaryCount,
+                    ) { onCopy() }
+                    ExpressiveMenuItem(
+                        icon = Icons.Rounded.Share,
+                        label = stringResource(R.string.share_note),
+                        index = 1,
+                        count = primaryCount,
+                    ) { onShare() }
+                    ExpressiveMenuItem(
+                        icon = Icons.Rounded.AutoFixHigh,
+                        label = stringResource(R.string.proofread_action),
+                        index = 2,
+                        count = primaryCount,
+                    ) { onProofread() }
+                    if (canLock) {
+                        ExpressiveMenuItem(
+                            icon = if (isLocked) Icons.Rounded.LockOpen else Icons.Rounded.Lock,
+                            label = stringResource(
+                                if (isLocked) R.string.unlock_note else R.string.lock_note
+                            ),
+                            index = 3,
+                            count = primaryCount,
+                        ) { onToggleLock() }
+                    }
                 }
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.archive_note)) },
-                    leadingIcon = { Icon(Icons.Rounded.Archive, contentDescription = null) },
-                    onClick = {
-                        haptics.tap()
-                        onArchive()
-                    },
-                )
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.delete_note)) },
-                    leadingIcon = { Icon(Icons.Rounded.Delete, contentDescription = null) },
-                    onClick = {
-                        haptics.reject()
-                        onDelete()
-                    },
-                )
+                ExpressiveMenuGroup(index = 1, count = 2) {
+                    ExpressiveMenuItem(
+                        icon = Icons.Rounded.Archive,
+                        label = stringResource(R.string.archive_note),
+                        index = 0,
+                        count = 2,
+                    ) { onArchive() }
+                    ExpressiveMenuItem(
+                        icon = Icons.Rounded.Delete,
+                        label = stringResource(R.string.delete_note),
+                        index = 1,
+                        count = 2,
+                        destructive = true,
+                    ) { onDelete() }
+                }
             }
         }
     }
