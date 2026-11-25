@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="new_note"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_note"
+        android:shortcutShortLabel="@string/shortcut_new_note_short"
+        android:shortcutLongLabel="@string/shortcut_new_note_long">
+        <intent
+            android:action="app.mimo.notes.SHORTCUT_NEW_NOTE"
+            android:targetPackage="app.mimo.notes"
+            android:targetClass="app.mimo.notes.MainActivity" />
+    </shortcut>
+    <shortcut
+        android:shortcutId="new_list"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_list"
+        android:shortcutShortLabel="@string/shortcut_new_list_short"
+        android:shortcutLongLabel="@string/shortcut_new_list_long">
+        <intent
+            android:action="app.mimo.notes.SHORTCUT_NEW_LIST"
+            android:targetPackage="app.mimo.notes"
+            android:targetClass="app.mimo.notes.MainActivity" />
+    </shortcut>
+    <shortcut
+        android:shortcutId="search"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_search"
+        android:shortcutShortLabel="@string/shortcut_search_short"
+        android:shortcutLongLabel="@string/shortcut_search_long">
+        <intent
+            android:action="app.mimo.notes.SHORTCUT_SEARCH"
+            android:targetPackage="app.mimo.notes"
+            android:targetClass="app.mimo.notes.MainActivity" />
+    </shortcut>
+</shortcuts>

@@ -1,0 +1,428 @@
+<!doctype html>
+<html lang="ru" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>mimo — тихие заметки для Android</title>
+  <meta name="description" content="mimo — локальные заметки с бумажной фактурой, живым интерфейсом и Material 3 Expressive. Без аккаунта и облака.">
+  <meta name="theme-color" content="#f4eee3">
+  <meta property="og:title" content="mimo — тихие заметки">
+  <meta property="og:description" content="Локальные заметки с бумажной фактурой и живым интерфейсом. Только вы и мысли.">
+  <meta property="og:type" content="website">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="fonts/unbounded.ttf" as="font" type="font/ttf" crossorigin>
+  <link rel="preload" href="fonts/manrope.ttf" as="font" type="font/ttf" crossorigin>
+  <link rel="stylesheet" href="style.css">
+  <noscript><style>.reveal{opacity:1;transform:none}</style></noscript>
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('mimo-theme');
+        var dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.dataset.theme = saved || (dark ? 'dark' : 'light');
+      } catch (_) {}
+    })();
+  </script>
+</head>
+<body>
+  <svg class="sprite" aria-hidden="true">
+    <symbol id="i-star" viewBox="0 0 48 48">
+      <path d="M24 7v34M7 24h34M12 12l24 24M36 12 12 36" fill="none" stroke="currentColor" stroke-width="4.4" stroke-linecap="round"/>
+      <circle cx="24" cy="24" r="4.6" fill="currentColor" class="star-dot"/>
+    </symbol>
+    <symbol id="i-paper" viewBox="0 0 24 24">
+      <rect x="4" y="3" width="16" height="18" rx="4" fill="none" stroke="currentColor" stroke-width="1.7"/>
+      <path d="M8 8h8M8 12h6M8 16h4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="i-dock" viewBox="0 0 24 24">
+      <rect x="2.5" y="13" width="19" height="7.5" rx="3.75" fill="none" stroke="currentColor" stroke-width="1.7"/>
+      <circle cx="7" cy="16.75" r="1.15" fill="currentColor"/>
+      <circle cx="12" cy="16.75" r="1.6" fill="currentColor"/>
+      <circle cx="17" cy="16.75" r="1.15" fill="currentColor"/>
+    </symbol>
+    <symbol id="i-read" viewBox="0 0 24 24">
+      <path d="M4 5.5h7.5c1.4 0 2.5 1.1 2.5 2.5v11c0-1.4-1.1-2.5-2.5-2.5H4z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+      <path d="M20 5.5h-7.5C11.1 5.5 10 6.6 10 8v11c0-1.4 1.1-2.5 2.5-2.5H20z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="i-search" viewBox="0 0 24 24">
+      <circle cx="10.5" cy="10.5" r="6" fill="none" stroke="currentColor" stroke-width="1.8"/>
+      <path d="m15 15 5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24">
+      <rect x="5" y="10" width="14" height="10" rx="3" fill="none" stroke="currentColor" stroke-width="1.7"/>
+      <path d="M8 10V8a4 4 0 0 1 8 0v2" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+      <circle cx="12" cy="15" r="1.4" fill="currentColor"/>
+    </symbol>
+    <symbol id="i-import" viewBox="0 0 24 24">
+      <path d="M12 3v11M8 10l4 4 4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="i-check" viewBox="0 0 24 24">
+      <rect x="3.5" y="3.5" width="17" height="17" rx="5" fill="none" stroke="currentColor" stroke-width="1.7"/>
+      <path d="m7.5 12 3.2 3.2 5.8-6.4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="i-offline" viewBox="0 0 24 24">
+      <path d="M12 3.5 20 7v5.2c0 4.4-3.1 7.3-8 8.3-4.9-1-8-3.9-8-8.3V7z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+      <path d="M8.5 12.2h7M9.6 15.3h4.8" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/>
+      <path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M19.1 4.9l-1.4 1.4M6.3 17.7l-1.4 1.4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24">
+      <path d="M20.3 15.2A8.6 8.6 0 0 1 8.8 3.7 8.7 8.7 0 1 0 20.3 15.2Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24">
+      <path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="i-download" viewBox="0 0 24 24">
+      <path d="M12 3v12M7.5 10.5 12 15l4.5-4.5M4 19h16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="i-close" viewBox="0 0 24 24">
+      <path d="m6 6 12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+    </symbol>
+  </svg>
+
+  <div class="grain" aria-hidden="true"></div>
+
+  <header class="nav" id="nav">
+    <a class="brand" href="#top" aria-label="mimo — на главную">
+      <svg class="brand-mark" viewBox="0 0 48 48" aria-hidden="true"><use href="#i-star"/></svg>
+      <span>mimo</span>
+    </a>
+    <nav class="nav-links" aria-label="Основная навигация">
+      <a href="#features">Возможности</a>
+      <a href="#demo">Демо</a>
+      <a href="#screens">Экраны</a>
+      <a href="#privacy">Приватность</a>
+    </nav>
+    <div class="nav-actions">
+      <button class="icon-btn theme-toggle" id="themeToggle" type="button" aria-label="Переключить тему">
+        <svg class="icon sun-icon"><use href="#i-sun"/></svg>
+        <svg class="icon moon-icon"><use href="#i-moon"/></svg>
+      </button>
+      <a class="btn btn-small btn-primary" href="#download">
+        <svg class="icon"><use href="#i-download"/></svg>
+        <span>APK</span>
+      </a>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero section">
+      <div class="hero-copy reveal">
+        <div class="eyebrow">
+          <span class="dot"></span>
+          Локально · Material 3 Expressive · Android 17
+        </div>
+        <h1>Тихие заметки,<br><span class="accent">которые остаются у вас</span></h1>
+        <p class="lede">mimo — это бумага, чернила и мягкие пружины вместо бесконечных списков. Заметки, фото, списки и рисунки живут только на устройстве.</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="download/mimo-release.apk" download>
+            <svg class="icon"><use href="#i-download"/></svg>
+            Скачать APK
+          </a>
+          <a class="btn btn-ghost" href="#screens">
+            Посмотреть экраны
+            <svg class="icon"><use href="#i-arrow"/></svg>
+          </a>
+        </div>
+        <ul class="hero-points" aria-label="Ключевые свойства">
+          <li>Без аккаунта</li>
+          <li>Без облака</li>
+          <li>Без разрешения INTERNET</li>
+        </ul>
+      </div>
+
+      <div class="hero-visual reveal" id="heroVisual">
+        <div class="phone phone-main">
+          <div class="phone-notch"></div>
+          <img src="screenshots/home-light.jpg" alt="Главный экран Mimo со заметками" width="540" height="1200">
+        </div>
+        <div class="float-card float-a">
+          <svg class="mini-star" viewBox="0 0 48 48"><use href="#i-star"/></svg>
+          <div><b>Живая бумага</b><span>карточки тянутся</span></div>
+        </div>
+        <div class="float-card float-b">
+          <span class="pill-dot"></span>
+          <div><b>PIN + биометрия</b><span>заметки под замком</span></div>
+        </div>
+        <div class="float-card float-c">
+          <span class="wave"></span>
+          <div><b>Быстрый захват</b><span>текст, список, фото</span></div>
+        </div>
+      </div>
+    </section>
+
+    <div class="ticker" aria-hidden="true">
+      <div class="ticker-track">
+        <span>локально</span><i></i><span>бумажная фактура</span><i></i><span>Material 3 Expressive</span><i></i><span>эластичные жесты</span><i></i><span>импорт из Keep</span><i></i><span>без сети</span><i></i>
+        <span>локально</span><i></i><span>бумажная фактура</span><i></i><span>Material 3 Expressive</span><i></i><span>эластичные жесты</span><i></i><span>импорт из Keep</span><i></i><span>без сети</span><i></i>
+      </div>
+    </div>
+
+    <section class="section" id="features">
+      <div class="section-head reveal">
+        <span class="kicker">Не просто список</span>
+        <h2>Интерфейс, который<br>реагирует на движение</h2>
+        <p>Карточки ведут себя как листы бумаги, док перетекает в меню, а читалка раскрывает заметку по частям.</p>
+      </div>
+      <div class="features">
+        <article class="feature-card paper-mint reveal">
+          <span class="feature-icon"><svg><use href="#i-paper"/></svg></span>
+          <h3>Живая бумага</h3>
+          <p>Стопка листов, чернильные штампы, эластичный драг и пружины вместо резких переключений.</p>
+        </article>
+        <article class="feature-card paper-coral reveal">
+          <span class="feature-icon"><svg><use href="#i-dock"/></svg></span>
+          <h3>Морфинг-док</h3>
+          <p>Одна плавающая панель превращается в меню или быстрый захват и возвращается обратно.</p>
+        </article>
+        <article class="feature-card paper-lav reveal">
+          <span class="feature-icon"><svg><use href="#i-read"/></svg></span>
+          <h3>Режим чтения</h3>
+          <p>Крупная обложка, спокойная типографика и каскадное появление контента.</p>
+        </article>
+        <article class="feature-card paper-yellow reveal">
+          <span class="feature-icon"><svg><use href="#i-search"/></svg></span>
+          <h3>Выразительный поиск</h3>
+          <p>Подсветка пробегает по тексту, результаты поднимаются со стаггером, история запросов под рукой.</p>
+        </article>
+        <article class="feature-card paper-peach reveal">
+          <span class="feature-icon"><svg><use href="#i-lock"/></svg></span>
+          <h3>Блокировка заметок</h3>
+          <p>Биометрия, экранный замок или PIN. Заблокированная заметка скрывает содержимое и превью.</p>
+        </article>
+        <article class="feature-card paper-mint reveal">
+          <span class="feature-icon"><svg><use href="#i-check"/></svg></span>
+          <h3>Чек-листы с характером</h3>
+          <p>Чернильный штамп при отметке, печать при завершении и пружинная перестановка пунктов.</p>
+        </article>
+        <article class="feature-card paper-coral reveal">
+          <span class="feature-icon"><svg><use href="#i-import"/></svg></span>
+          <h3>Импорт из Keep</h3>
+          <p>Текст, списки, метки, цвета, фото и аудио из Google Takeout — локально, без сервера.</p>
+        </article>
+        <article class="feature-card paper-lav reveal">
+          <span class="feature-icon"><svg><use href="#i-offline"/></svg></span>
+          <h3>Офлайн по умолчанию</h3>
+          <p>В манифесте нет разрешения INTERNET. Всё хранится в приватном хранилище приложения.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section demo-section" id="demo">
+      <div class="demo-copy reveal">
+        <span class="kicker">Живой интерфейс</span>
+        <h2>Потрогайте док</h2>
+        <p>Это веб-версия ощущения Mimo. Нажмите на меню или плюс — плавающая панель перестроится. Переключите тему и попробуйте пружины.</p>
+        <div class="demo-legend">
+          <span><b>01</b> Меню</span>
+          <span><b>02</b> Быстрый захват</span>
+          <span><b>03</b> Настройки</span>
+        </div>
+      </div>
+      <div class="demo-stage reveal" id="demoStage">
+        <div class="demo-phone">
+          <div class="demo-status"><span>9:41</span><i></i><span>● ● ●</span></div>
+          <div class="demo-feed">
+            <div class="demo-heading">Все заметки</div>
+            <div class="demo-note demo-note-mint">
+              <b>Добро пожаловать в Mimo</b>
+              <p>Тихие заметки, которые остаются только у вас.</p>
+              <span>#идеи</span>
+            </div>
+            <div class="demo-note demo-note-lav">
+              <b>Созвон по проекту</b>
+              <p>Обсудить структуру и сроки. Подготовить три варианта.</p>
+              <span>◷ Завтра, 10:30</span>
+            </div>
+            <div class="demo-note demo-note-peach">
+              <b>Рецепт пасты</b>
+              <p>Лимон, пармезан, сливочное масло.</p>
+              <span>#дом</span>
+            </div>
+          </div>
+          <div class="demo-surface" id="demoSurface" data-mode="dock">
+            <div class="demo-panel demo-dock">
+              <button class="demo-icon" id="demoMenuBtn" type="button" aria-label="Меню">
+                <span class="hamburger"></span>
+              </button>
+              <button class="demo-fab" id="demoPlusBtn" type="button" aria-label="Быстрая заметка">+</button>
+              <button class="demo-icon" id="demoLayoutBtn" type="button" aria-label="Вид заметок">
+                <span class="grid-icon"></span>
+              </button>
+            </div>
+            <div class="demo-panel demo-menu-panel" aria-hidden="true">
+              <div class="demo-panel-head">
+                <b>Меню</b>
+                <button class="demo-close" data-demo-close type="button" aria-label="Закрыть">×</button>
+              </div>
+              <button class="demo-row active" type="button"><span>▤</span> Заметки <em>9</em></button>
+              <button class="demo-row" type="button"><span>◷</span> Напоминания <em>2</em></button>
+              <button class="demo-row" type="button"><span>◈</span> Метки</button>
+              <button class="demo-row" type="button"><span>▣</span> Архив <em>1</em></button>
+              <button class="demo-row" type="button"><span>▥</span> Корзина <em>1</em></button>
+              <button class="demo-row" type="button"><span>⚙</span> Настройки</button>
+            </div>
+            <div class="demo-panel demo-capture-panel" aria-hidden="true">
+              <div class="demo-panel-head">
+                <div><b>Быстрая заметка</b><small>заметки, которые дышат</small></div>
+                <button class="demo-close" data-demo-close type="button" aria-label="Закрыть">×</button>
+              </div>
+              <div class="demo-options">
+                <button type="button"><span>≡</span><b>Текст</b><small>Мысль</small></button>
+                <button type="button"><span>☑</span><b>Список</b><small>С чекбоксами</small></button>
+                <button type="button"><span>▧</span><b>Фото</b><small>Из галереи</small></button>
+                <button type="button"><span>✎</span><b>Рисунок</b><small>Холст и кисти</small></button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p class="demo-hint">Нажмите <b>меню</b> или <b>плюс</b> внутри телефона</p>
+      </div>
+    </section>
+
+    <section class="section motion-section" id="motion">
+      <div class="motion-copy reveal">
+        <span class="kicker">Тактильность</span>
+        <h2>Потяните карточку</h2>
+        <p>В приложении карточки и док слегка тянутся за пальцем и пружинисто возвращаются. Здесь — упрощённая версия этого ощущения.</p>
+        <ul class="clean-list">
+          <li>эластичный драг</li>
+          <li>наклон в сторону движения</li>
+          <li>веер бумажных слоёв</li>
+          <li>тактильный отклик</li>
+        </ul>
+      </div>
+      <div class="elastic-zone reveal" id="elasticZone">
+        <div class="elastic-card" id="elasticCard">
+          <div class="elastic-stack"></div>
+          <div class="elastic-top"><span class="tag">идеи</span><span>•••</span></div>
+          <h3>Потяните меня в сторону</h3>
+          <p>Карточка последует за пальцем, наклонится и вернётся на место.</p>
+          <div class="elastic-meta"><span>◷ Сегодня</span><span class="mini-dot"></span><span>#mimo</span></div>
+        </div>
+        <span class="drag-hint">↔ drag</span>
+      </div>
+    </section>
+
+    <section class="section screens-section" id="screens">
+      <div class="section-head reveal">
+        <span class="kicker">Экраны</span>
+        <h2>Тёплая палитра,<br>крупный характер</h2>
+        <p>Светлая и тёмная темы, читалка, поиск, меню и пустые состояния с рисованными сценами.</p>
+      </div>
+      <div class="screens-grid" id="screensGrid">
+        <button class="screen-card reveal" data-full="screenshots/home-light.jpg" data-caption="Главный экран · светлая тема">
+          <img src="screenshots/home-light.jpg" alt="Главный экран Mimo" loading="lazy">
+          <span>Главный экран</span>
+        </button>
+        <button class="screen-card reveal" data-full="screenshots/home-dark.jpg" data-caption="Главный экран · тёмная тема">
+          <img src="screenshots/home-dark.jpg" alt="Тёмная тема Mimo" loading="lazy">
+          <span>Тёмная тема</span>
+        </button>
+        <button class="screen-card reveal" data-full="screenshots/editor.jpg" data-caption="Режим чтения с фото-обложкой">
+          <img src="screenshots/editor.jpg" alt="Режим чтения Mimo" loading="lazy">
+          <span>Режим чтения</span>
+        </button>
+        <button class="screen-card reveal" data-full="screenshots/search.jpg" data-caption="Поиск с подсветкой совпадений">
+          <img src="screenshots/search.jpg" alt="Поиск в Mimo" loading="lazy">
+          <span>Поиск</span>
+        </button>
+        <button class="screen-card reveal" data-full="screenshots/menu.jpg" data-caption="Меню внутри плавающей панели">
+          <img src="screenshots/menu.jpg" alt="Меню Mimo" loading="lazy">
+          <span>Меню</span>
+        </button>
+        <button class="screen-card reveal" data-full="screenshots/quick-capture.jpg" data-caption="Быстрый захват заметки">
+          <img src="screenshots/quick-capture.jpg" alt="Быстрый захват Mimo" loading="lazy">
+          <span>Быстрый захват</span>
+        </button>
+        <button class="screen-card reveal" data-full="screenshots/welcome.jpg" data-caption="Первый запуск с живой звёздочкой">
+          <img src="screenshots/welcome.jpg" alt="Первый запуск Mimo" loading="lazy">
+          <span>Первый запуск</span>
+        </button>
+        <button class="screen-card reveal" data-full="screenshots/settings.jpg" data-caption="Настройки: тема, тактильный отклик, данные">
+          <img src="screenshots/settings.jpg" alt="Настройки Mimo" loading="lazy">
+          <span>Настройки</span>
+        </button>
+        <button class="screen-card reveal" data-full="screenshots/archive-empty.jpg" data-caption="Пустой архив с рисованной сценой">
+          <img src="screenshots/archive-empty.jpg" alt="Пустой архив Mimo" loading="lazy">
+          <span>Архив</span>
+        </button>
+      </div>
+    </section>
+
+    <section class="section privacy-section" id="privacy">
+      <div class="privacy-card reveal">
+        <div class="privacy-orbit" aria-hidden="true">
+          <svg viewBox="0 0 48 48"><use href="#i-star"/></svg>
+        </div>
+        <div class="privacy-copy">
+          <span class="kicker">Приватность</span>
+          <h2>Ничего не уходит в сеть</h2>
+          <p>mimo не просит аккаунт, не синхронизирует заметки и не содержит разрешения INTERNET. Поиск, импорт и напоминания работают на устройстве.</p>
+          <div class="privacy-grid">
+            <div><b>0</b><span>аккаунтов</span></div>
+            <div><b>0</b><span>облачных запросов</span></div>
+            <div><b>1</b><span>приватная база</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section download-section" id="download">
+      <div class="download-card reveal">
+        <div class="download-copy">
+          <span class="kicker">Попробовать</span>
+          <h2>Скачайте Mimo</h2>
+          <p>Release-сборка для Android 8+.<br>Подписана локальным ключом для side-loading.</p>
+          <div class="download-actions">
+            <a class="btn btn-primary" href="download/mimo-release.apk" download>
+              <svg class="icon"><use href="#i-download"/></svg>
+              Скачать APK
+            </a>
+            <a class="btn btn-ghost" href="#screens">
+              Сначала экраны
+              <svg class="icon"><use href="#i-arrow"/></svg>
+            </a>
+          </div>
+          <p class="file-meta">≈ 4 МБ · Android 8.0+ · офлайн</p>
+        </div>
+        <div class="install-card">
+          <b>Как установить</b>
+          <ol>
+            <li>Скачайте APK на Android-устройство.</li>
+            <li>Разрешите установку из этого источника.</li>
+            <li>Откройте Mimo и создайте первую заметку.</li>
+          </ol>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-brand">
+      <svg class="brand-mark" viewBox="0 0 48 48" aria-hidden="true"><use href="#i-star"/></svg>
+      <span>mimo</span>
+    </div>
+    <p>Локальные заметки. Тёплая бумага. Живые пружины.</p>
+    <div class="footer-links">
+      <a href="https://github.com/dokmoshen/mimo" rel="noopener">GitHub</a>
+      <a href="https://www.gnu.org/licenses/gpl-3.0.html" rel="noopener">GPL-3.0</a>
+      <a href="download/mimo-release.apk" download>APK</a>
+      <a href="#top">Наверх ↑</a>
+    </div>
+    <span class="footer-copy">Mimo · Material 3 Expressive · 2026</span>
+  </footer>
+
+  <div class="lightbox" id="lightbox" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Просмотр экрана">
+    <button class="lightbox-close" id="lightboxClose" type="button" aria-label="Закрыть">
+      <svg class="icon"><use href="#i-close"/></svg>
+    </button>
+    <img id="lightboxImage" alt="">
+    <p id="lightboxCaption"></p>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
