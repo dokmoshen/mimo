@@ -143,7 +143,7 @@ fun FloatingSurfaceHost(
             val maxPanelHeight = maxHeight - 150.dp
             val targetWidth = when (mode) {
                 FloatingPanelMode.DOCK -> 222.dp
-                FloatingPanelMode.MENU -> 300.dp
+                FloatingPanelMode.MENU,
                 FloatingPanelMode.CAPTURE -> (maxWidth - 40.dp).coerceAtMost(380.dp)
             }
             val width by animateDpAsState(

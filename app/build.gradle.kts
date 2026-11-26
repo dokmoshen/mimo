@@ -13,8 +13,8 @@ android {
         applicationId = "app.mimo.notes"
         minSdk = 28
         targetSdk = 37
-        versionCode = 14
-        versionName = "1.12.1"
+        versionCode = 15
+        versionName = "1.12.2"
     }
 
     buildFeatures {
