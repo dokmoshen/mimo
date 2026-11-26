@@ -1,5 +1,6 @@
 package app.mimo.notes.ui.editor
 
+import app.mimo.notes.ui.components.MimoIcons
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
@@ -122,7 +123,7 @@ fun EditorToolbar(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         FormatButton(
-                            icon = Icons.Rounded.Undo,
+                            icon = MimoIcons.Undo,
                             label = stringResource(R.string.undo),
                             active = false,
                             contentColor = contentColor,
@@ -130,7 +131,7 @@ fun EditorToolbar(
                             enabled = canUndo,
                         )
                         FormatButton(
-                            icon = Icons.Rounded.Redo,
+                            icon = MimoIcons.Redo,
                             label = stringResource(R.string.redo),
                             active = false,
                             contentColor = contentColor,
@@ -138,63 +139,63 @@ fun EditorToolbar(
                             enabled = canRedo,
                         )
                         FormatButton(
-                            icon = Icons.Rounded.FormatBold,
+                            icon = MimoIcons.FormatBold,
                             label = stringResource(R.string.format_bold),
                             active = InlineFormat.BOLD in activeFormats,
                             contentColor = contentColor,
                             onClick = { onInlineFormat(InlineFormat.BOLD) },
                         )
                         FormatButton(
-                            icon = Icons.Rounded.FormatItalic,
+                            icon = MimoIcons.FormatItalic,
                             label = stringResource(R.string.format_italic),
                             active = InlineFormat.ITALIC in activeFormats,
                             contentColor = contentColor,
                             onClick = { onInlineFormat(InlineFormat.ITALIC) },
                         )
                         FormatButton(
-                            icon = Icons.Rounded.FormatUnderlined,
+                            icon = MimoIcons.FormatUnderlined,
                             label = stringResource(R.string.format_underline),
                             active = InlineFormat.UNDERLINE in activeFormats,
                             contentColor = contentColor,
                             onClick = { onInlineFormat(InlineFormat.UNDERLINE) },
                         )
                         FormatButton(
-                            icon = Icons.Rounded.FormatStrikethrough,
+                            icon = MimoIcons.FormatStrikethrough,
                             label = stringResource(R.string.format_strike),
                             active = InlineFormat.STRIKE in activeFormats,
                             contentColor = contentColor,
                             onClick = { onInlineFormat(InlineFormat.STRIKE) },
                         )
                         FormatButton(
-                            icon = Icons.Rounded.Highlight,
+                            icon = MimoIcons.Highlight,
                             label = stringResource(R.string.format_highlight),
                             active = InlineFormat.HIGHLIGHT in activeFormats,
                             contentColor = contentColor,
                             onClick = { onInlineFormat(InlineFormat.HIGHLIGHT) },
                         )
                         FormatButton(
-                            icon = Icons.Rounded.Title,
+                            icon = MimoIcons.Title,
                             label = stringResource(R.string.format_heading),
                             active = headingActive,
                             contentColor = contentColor,
                             onClick = onHeading,
                         )
                         FormatButton(
-                            icon = Icons.Rounded.FormatListBulleted,
+                            icon = MimoIcons.FormatListBulleted,
                             label = stringResource(R.string.format_bullets),
                             active = bulletsActive,
                             contentColor = contentColor,
                             onClick = onBullets,
                         )
                         FormatButton(
-                            icon = Icons.Rounded.FormatListNumbered,
+                            icon = MimoIcons.FormatListNumbered,
                             label = stringResource(R.string.format_numbers),
                             active = numbersActive,
                             contentColor = contentColor,
                             onClick = onNumbers,
                         )
                         FormatButton(
-                            icon = Icons.Rounded.Checklist,
+                            icon = MimoIcons.Checklist,
                             label = stringResource(R.string.insert_checklist),
                             active = false,
                             contentColor = contentColor,
@@ -215,7 +216,7 @@ fun EditorToolbar(
             ) {
                 if (showFormat) {
                     FormatButton(
-                        icon = Icons.Rounded.Title,
+                        icon = MimoIcons.Title,
                         label = stringResource(R.string.formatting),
                         active = formatExpanded,
                         contentColor = contentColor,
@@ -223,24 +224,24 @@ fun EditorToolbar(
                         text = "Aa",
                     )
                 }
-                ToolButton(Icons.Rounded.Image, stringResource(R.string.add_image), contentColor, onPhoto)
-                ToolButton(Icons.Rounded.Brush, stringResource(R.string.add_drawing_note), contentColor, onDrawing)
+                ToolButton(MimoIcons.Image, stringResource(R.string.add_image), contentColor, onPhoto)
+                ToolButton(MimoIcons.Brush, stringResource(R.string.add_drawing_note), contentColor, onDrawing)
                 ToolButton(
-                    Icons.Rounded.Mic,
+                    MimoIcons.Mic,
                     stringResource(R.string.add_audio_note),
                     contentColor,
                     onAudio,
                     active = hasAudio,
                 )
                 ToolButton(
-                    Icons.Rounded.Notifications,
+                    MimoIcons.Notifications,
                     stringResource(R.string.add_reminder),
                     contentColor,
                     onReminder,
                     active = hasReminder,
                 )
-                ToolButton(Icons.Rounded.ColorLens, stringResource(R.string.change_color), contentColor, onColor)
-                ToolButton(Icons.Rounded.Label, stringResource(R.string.labels_action), contentColor, onLabels)
+                ToolButton(MimoIcons.ColorLens, stringResource(R.string.change_color), contentColor, onColor)
+                ToolButton(MimoIcons.Label, stringResource(R.string.labels_action), contentColor, onLabels)
                 Spacer(Modifier.width(4.dp))
             }
         }

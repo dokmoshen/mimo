@@ -343,7 +343,7 @@ fun NoteCard(
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Icon(
-                                Icons.Outlined.Lock,
+                                MimoIcons.Lock,
                                 contentDescription = null,
                                 tint = muted,
                                 modifier = Modifier.size(18.dp),
@@ -531,7 +531,7 @@ fun NoteCard(
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Icon(
-                                Icons.Rounded.Check,
+                                MimoIcons.Check,
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.onPrimary,
                                 modifier = Modifier.size(17.dp),
@@ -549,7 +549,7 @@ fun NoteCard(
                 val controlTint = if (overMedia) content.copy(alpha = 0.8f) else muted
                 if (note.isPinned) {
                     Icon(
-                        Icons.Rounded.PushPin,
+                        MimoIcons.PushPin,
                         contentDescription = context.getString(R.string.pinned_badge),
                         tint = controlTint,
                         modifier = Modifier
@@ -571,7 +571,7 @@ fun NoteCard(
                         modifier = Modifier.size(32.dp),
                     ) {
                         Icon(
-                            Icons.Rounded.MoreHoriz,
+                            MimoIcons.MoreHoriz,
                             contentDescription = context.getString(R.string.note_actions),
                             tint = controlTint,
                             modifier = Modifier.size(19.dp),
@@ -885,7 +885,7 @@ private fun MiniCheckbox(
                     .background(content.copy(alpha = 0.9f), CircleShape)
             )
             Icon(
-                Icons.Rounded.Check,
+                MimoIcons.Check,
                 contentDescription = null,
                 tint = backgroundColor,
                 modifier = Modifier
@@ -908,7 +908,7 @@ private fun ReminderChip(text: String, overdue: Boolean, content: Color) {
         horizontalArrangement = Arrangement.spacedBy(5.dp),
     ) {
         Icon(
-            Icons.Rounded.Notifications,
+            MimoIcons.Notifications,
             contentDescription = null,
             tint = tint,
             modifier = Modifier.size(14.dp),
@@ -936,13 +936,13 @@ private fun NoteActionsMenu(
         if (note.isTrashed) {
             ExpressiveMenuGroup(index = 0, count = 1) {
                 ExpressiveMenuItem(
-                    icon = Icons.Rounded.Restore,
+                    icon = MimoIcons.Restore,
                     label = context.getString(R.string.restore_note),
                     index = 0,
                     count = 2,
                 ) { onAction(NoteCardAction.RESTORE) }
                 ExpressiveMenuItem(
-                    icon = Icons.Rounded.DeleteForever,
+                    icon = MimoIcons.DeleteForever,
                     label = context.getString(R.string.delete_forever),
                     index = 1,
                     count = 2,
@@ -952,24 +952,24 @@ private fun NoteActionsMenu(
         } else {
             val primary = buildList {
                 if (note.isArchived) {
-                    add(NoteMenuAction(Icons.Rounded.Unarchive, context.getString(R.string.unarchive_note), NoteCardAction.UNARCHIVE))
+                    add(NoteMenuAction(MimoIcons.Unarchive, context.getString(R.string.unarchive_note), NoteCardAction.UNARCHIVE))
                 } else {
                     add(
                         NoteMenuAction(
-                            Icons.Rounded.PushPin,
+                            MimoIcons.PushPin,
                             context.getString(if (note.isPinned) R.string.unpin_note else R.string.pin_note),
                             if (note.isPinned) NoteCardAction.UNPIN else NoteCardAction.PIN,
                         )
                     )
                 }
-                add(NoteMenuAction(Icons.Rounded.ContentCopy, context.getString(R.string.copy_note), NoteCardAction.COPY))
-                add(NoteMenuAction(Icons.Rounded.Label, context.getString(R.string.labels_action), NoteCardAction.LABELS))
-                add(NoteMenuAction(Icons.Rounded.ColorLens, context.getString(R.string.change_color), NoteCardAction.COLOR))
-                add(NoteMenuAction(Icons.Rounded.Share, context.getString(R.string.share_note), NoteCardAction.SHARE))
+                add(NoteMenuAction(MimoIcons.ContentCopy, context.getString(R.string.copy_note), NoteCardAction.COPY))
+                add(NoteMenuAction(MimoIcons.Label, context.getString(R.string.labels_action), NoteCardAction.LABELS))
+                add(NoteMenuAction(MimoIcons.ColorLens, context.getString(R.string.change_color), NoteCardAction.COLOR))
+                add(NoteMenuAction(MimoIcons.Share, context.getString(R.string.share_note), NoteCardAction.SHARE))
                 if (showLockAction) {
                     add(
                         NoteMenuAction(
-                            if (note.isLocked) Icons.Rounded.LockOpen else Icons.Rounded.Lock,
+                            if (note.isLocked) MimoIcons.LockOpen else MimoIcons.Lock,
                             context.getString(if (note.isLocked) R.string.unlock_note else R.string.lock_note),
                             if (note.isLocked) NoteCardAction.UNLOCK else NoteCardAction.LOCK,
                         )
@@ -990,13 +990,13 @@ private fun NoteActionsMenu(
             }
             ExpressiveMenuGroup(index = 1, count = 2) {
                 ExpressiveMenuItem(
-                    icon = Icons.Rounded.Archive,
+                    icon = MimoIcons.Archive,
                     label = context.getString(R.string.archive_note),
                     index = 0,
                     count = 2,
                 ) { onAction(NoteCardAction.ARCHIVE) }
                 ExpressiveMenuItem(
-                    icon = Icons.Rounded.Delete,
+                    icon = MimoIcons.Delete,
                     label = context.getString(R.string.delete),
                     index = 1,
                     count = 2,

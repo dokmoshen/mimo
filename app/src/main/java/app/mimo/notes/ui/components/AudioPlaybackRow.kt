@@ -136,7 +136,7 @@ fun AudioPlaybackRow(
                     enabled = exists,
                 ) {
                     Icon(
-                        if (isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
+                        if (isPlaying) MimoIcons.Pause else MimoIcons.PlayArrow,
                         contentDescription = if (isPlaying) "Пауза" else "Воспроизвести",
                         tint = tint,
                         modifier = Modifier.size(if (compact) 18.dp else 22.dp),

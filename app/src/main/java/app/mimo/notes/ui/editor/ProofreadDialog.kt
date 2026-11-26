@@ -1,5 +1,6 @@
 package app.mimo.notes.ui.editor
 
+import app.mimo.notes.ui.components.MimoIcons
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -162,7 +163,7 @@ fun ProofreadDialog(
                         enabled = !aiLoading,
                     ) {
                         Icon(
-                            Icons.Rounded.AutoAwesome,
+                            MimoIcons.AutoAwesome,
                             contentDescription = null,
                             modifier = Modifier.size(18.dp),
                         )

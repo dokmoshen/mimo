@@ -55,7 +55,7 @@ fun TransparentScreenHeader(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             CircleActionButton(
-                icon = Icons.Rounded.ArrowBack,
+                icon = MimoIcons.ArrowBack,
                 contentDescription = stringResource(R.string.back),
                 onClick = onBack,
             )

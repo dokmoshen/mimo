@@ -128,7 +128,7 @@ fun ColorPickerSheet(
                                 contentAlignment = Alignment.Center,
                             ) {
                                 Icon(
-                                    Icons.Rounded.Check,
+                                    MimoIcons.Check,
                                     contentDescription = null,
                                     tint = NoteColors.content().copy(alpha = ringAlpha),
                                     modifier = Modifier
@@ -206,7 +206,7 @@ fun LabelEditDialog(
                         ) {
                             if (colorId == color.id) {
                                 Icon(
-                                    Icons.Rounded.Check,
+                                    MimoIcons.Check,
                                     contentDescription = null,
                                     tint = Color.White,
                                     modifier = Modifier.size(17.dp),

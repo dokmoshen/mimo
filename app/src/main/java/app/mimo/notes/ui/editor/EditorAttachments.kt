@@ -1,5 +1,6 @@
 package app.mimo.notes.ui.editor
 
+import app.mimo.notes.ui.components.MimoIcons
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
@@ -205,7 +206,7 @@ private fun ImageTile(
             contentAlignment = Alignment.Center,
         ) {
             Icon(
-                Icons.Rounded.Close,
+                MimoIcons.Close,
                 contentDescription = stringResource(R.string.remove),
                 tint = Color.White,
                 modifier = Modifier.size(16.dp),
@@ -253,7 +254,7 @@ private fun AddImageCard(
             horizontalArrangement = Arrangement.Center,
         ) {
             Icon(
-                Icons.Rounded.Add,
+                MimoIcons.Add,
                 contentDescription = stringResource(R.string.add_image),
                 tint = contentColor.copy(alpha = 0.55f),
             )
@@ -299,7 +300,7 @@ fun FullScreenImageDialog(path: String, onDismiss: () -> Unit) {
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
-                    Icons.Rounded.Close,
+                    MimoIcons.Close,
                     contentDescription = stringResource(R.string.close),
                     tint = Color.White,
                 )
@@ -398,7 +399,7 @@ fun AudioRecorderCard(
                     contentAlignment = Alignment.Center,
                 ) {
                     Icon(
-                        Icons.Rounded.Close,
+                        MimoIcons.Close,
                         contentDescription = stringResource(R.string.remove),
                         tint = contentColor,
                         modifier = Modifier.size(19.dp),
@@ -419,7 +420,7 @@ fun AudioRecorderCard(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Icon(
-                            if (state.isPaused) Icons.Rounded.PlayArrow else Icons.Rounded.Pause,
+                            if (state.isPaused) MimoIcons.PlayArrow else MimoIcons.Pause,
                             contentDescription = null,
                             modifier = Modifier.size(18.dp),
                         )
@@ -444,7 +445,7 @@ fun AudioRecorderCard(
                         Modifier.padding(horizontal = 18.dp, vertical = 10.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Icon(Icons.Rounded.Stop, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Icon(MimoIcons.Stop, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(5.dp))
                         Text(
                             stringResource(R.string.stop_recording),
@@ -482,7 +483,7 @@ fun AudioEmptyCard(
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
-                    Icons.Rounded.Mic,
+                    MimoIcons.Mic,
                     contentDescription = null,
                     tint = contentColor,
                     modifier = Modifier.size(22.dp),
@@ -503,7 +504,7 @@ fun AudioEmptyCard(
                 )
             }
             Icon(
-                Icons.Rounded.GraphicEq,
+                MimoIcons.GraphicEq,
                 contentDescription = null,
                 tint = contentColor.copy(alpha = 0.4f),
             )

@@ -90,7 +90,7 @@ fun LabelPickerSheet(
                         haptics.tap()
                         showCreate = true
                     }) {
-                        Icon(Icons.Rounded.Add, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Icon(MimoIcons.Add, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(4.dp))
                         Text(stringResource(R.string.new_label))
                     }
@@ -109,7 +109,7 @@ fun LabelPickerSheet(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Icon(
-                            Icons.Rounded.Search,
+                            MimoIcons.Search,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(18.dp),
@@ -194,7 +194,7 @@ fun LabelPickerSheet(
                                 Box(contentAlignment = Alignment.Center) {
                                     if (isSelected) {
                                         Icon(
-                                            Icons.Rounded.Check,
+                                            MimoIcons.Check,
                                             contentDescription = null,
                                             tint = MaterialTheme.colorScheme.onPrimary,
                                             modifier = Modifier.size(15.dp),

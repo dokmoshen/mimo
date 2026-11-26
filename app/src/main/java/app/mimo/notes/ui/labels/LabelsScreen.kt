@@ -1,5 +1,6 @@
 package app.mimo.notes.ui.labels
 
+import app.mimo.notes.ui.components.MimoIcons
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -97,7 +98,7 @@ fun LabelsScreen(
                     EmptyState(
                         title = stringResource(R.string.labels_empty_title),
                         body = stringResource(R.string.labels_empty_body),
-                        icon = Icons.Rounded.Label,
+                        icon = MimoIcons.Label,
                         actionLabel = stringResource(R.string.new_label),
                         onAction = { showCreate = true },
                         illustration = MimoIllustration.LABELS,
@@ -145,7 +146,7 @@ fun LabelsScreen(
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
                                 Icon(
-                                    Icons.Rounded.Add,
+                                    MimoIcons.Add,
                                     contentDescription = null,
                                     tint = MaterialTheme.colorScheme.primary,
                                 )
@@ -170,7 +171,7 @@ fun LabelsScreen(
                 modifier = Modifier.align(Alignment.TopCenter),
                 actions = {
                     CircleActionButton(
-                        icon = Icons.Rounded.Add,
+                        icon = MimoIcons.Add,
                         contentDescription = stringResource(R.string.new_label),
                         onClick = { showCreate = true },
                     )
@@ -286,7 +287,7 @@ private fun LabelRow(
                     menu = true
                 }) {
                     Icon(
-                        Icons.Rounded.MoreHoriz,
+                        MimoIcons.MoreHoriz,
                         contentDescription = stringResource(R.string.more),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -294,7 +295,7 @@ private fun LabelRow(
                 DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.rename_label)) },
-                        leadingIcon = { Icon(Icons.Rounded.Edit, contentDescription = null) },
+                        leadingIcon = { Icon(MimoIcons.Edit, contentDescription = null) },
                         onClick = {
                             haptics.tap()
                             menu = false
@@ -303,7 +304,7 @@ private fun LabelRow(
                     )
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.delete_label)) },
-                        leadingIcon = { Icon(Icons.Rounded.Delete, contentDescription = null) },
+                        leadingIcon = { Icon(MimoIcons.Delete, contentDescription = null) },
                         onClick = {
                             haptics.reject()
                             menu = false

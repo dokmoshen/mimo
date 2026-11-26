@@ -1,5 +1,6 @@
 package app.mimo.notes.ui.editor
 
+import app.mimo.notes.ui.components.MimoIcons
 import android.Manifest
 import android.app.Activity
 import android.content.Context
@@ -1096,7 +1097,7 @@ fun NoteEditorScreen(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Icon(
-                        Icons.Rounded.Edit,
+                        MimoIcons.Edit,
                         contentDescription = null,
                         modifier = Modifier.size(18.dp),
                     )
@@ -1322,7 +1323,7 @@ fun NoteEditorScreen(
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
-                    Icons.Rounded.Close,
+                    MimoIcons.Close,
                     contentDescription = stringResource(R.string.close),
                     tint = Color.White,
                 )
@@ -1719,7 +1720,7 @@ private fun ReaderChecklist(
                         )
                         if (item.isChecked) {
                             Icon(
-                                Icons.Rounded.Check,
+                                MimoIcons.Check,
                                 contentDescription = null,
                                 tint = backgroundColor,
                                 modifier = Modifier.size(13.dp),
@@ -1830,7 +1831,7 @@ private fun EditorTopBar(
                 onBack()
             }) {
                 Icon(
-                    Icons.Rounded.ArrowBack,
+                    MimoIcons.ArrowBack,
                     contentDescription = stringResource(R.string.close_editor),
                     tint = contentColor,
                 )
@@ -1895,7 +1896,7 @@ private fun EditorTopBar(
                 }
             }) {
                 Icon(
-                    if (readMode) Icons.Rounded.Edit else Icons.Rounded.MenuBook,
+                    if (readMode) MimoIcons.Edit else MimoIcons.MenuBook,
                     contentDescription = stringResource(
                         if (readMode) R.string.reader_edit else R.string.reader_mode
                     ),
@@ -1921,7 +1922,7 @@ private fun EditorTopBar(
                 },
             ) {
                 Icon(
-                    Icons.Rounded.PushPin,
+                    MimoIcons.PushPin,
                     contentDescription = stringResource(
                         if (isPinned) R.string.unpin_note else R.string.pin_note
                     ),
@@ -1949,7 +1950,7 @@ private fun EditorTopBar(
                     onToggleLock()
                 }) {
                     Icon(
-                        if (isLocked) Icons.Rounded.LockOpen else Icons.Rounded.Lock,
+                        if (isLocked) MimoIcons.LockOpen else MimoIcons.Lock,
                         contentDescription = stringResource(
                             if (isLocked) R.string.unlock_note else R.string.lock_note
                         ),
@@ -1971,7 +1972,7 @@ private fun EditorTopBar(
                     onMore()
                 }) {
                     Icon(
-                        Icons.Rounded.MoreVert,
+                        MimoIcons.MoreVert,
                         contentDescription = stringResource(R.string.more),
                         tint = contentColor,
                     )
@@ -1981,26 +1982,26 @@ private fun EditorTopBar(
                 val primaryCount = 3 + if (canLock) 1 else 0
                 ExpressiveMenuGroup(index = 0, count = 2) {
                     ExpressiveMenuItem(
-                        icon = Icons.Rounded.ContentCopy,
+                        icon = MimoIcons.ContentCopy,
                         label = stringResource(R.string.copy_note),
                         index = 0,
                         count = primaryCount,
                     ) { onCopy() }
                     ExpressiveMenuItem(
-                        icon = Icons.Rounded.Share,
+                        icon = MimoIcons.Share,
                         label = stringResource(R.string.share_note),
                         index = 1,
                         count = primaryCount,
                     ) { onShare() }
                     ExpressiveMenuItem(
-                        icon = Icons.Rounded.AutoFixHigh,
+                        icon = MimoIcons.AutoFixHigh,
                         label = stringResource(R.string.proofread_action),
                         index = 2,
                         count = primaryCount,
                     ) { onProofread() }
                     if (canLock) {
                         ExpressiveMenuItem(
-                            icon = if (isLocked) Icons.Rounded.LockOpen else Icons.Rounded.Lock,
+                            icon = if (isLocked) MimoIcons.LockOpen else MimoIcons.Lock,
                             label = stringResource(
                                 if (isLocked) R.string.unlock_note else R.string.lock_note
                             ),
@@ -2011,13 +2012,13 @@ private fun EditorTopBar(
                 }
                 ExpressiveMenuGroup(index = 1, count = 2) {
                     ExpressiveMenuItem(
-                        icon = Icons.Rounded.Archive,
+                        icon = MimoIcons.Archive,
                         label = stringResource(R.string.archive_note),
                         index = 0,
                         count = 2,
                     ) { onArchive() }
                     ExpressiveMenuItem(
-                        icon = Icons.Rounded.Delete,
+                        icon = MimoIcons.Delete,
                         label = stringResource(R.string.delete_note),
                         index = 1,
                         count = 2,
@@ -2057,7 +2058,7 @@ private fun ReminderToken(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(
-                Icons.Rounded.Notifications,
+                MimoIcons.Notifications,
                 contentDescription = null,
                 tint = tint.copy(alpha = 0.85f),
                 modifier = Modifier.size(13.dp),
@@ -2077,7 +2078,7 @@ private fun ReminderToken(
                     modifier = Modifier.size(26.dp),
                 ) {
                     Icon(
-                        Icons.Rounded.Close,
+                        MimoIcons.Close,
                         contentDescription = stringResource(R.string.remove_reminder),
                         tint = tint.copy(alpha = 0.6f),
                         modifier = Modifier.size(13.dp),
@@ -2128,7 +2129,7 @@ private fun DrawingCard(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Icon(
-                    Icons.Rounded.Brush,
+                    MimoIcons.Brush,
                     contentDescription = null,
                     tint = contentColor.copy(alpha = 0.5f),
                     modifier = Modifier.size(15.dp),
@@ -2145,7 +2146,7 @@ private fun DrawingCard(
                     onEdit()
                 }) {
                     Icon(
-                        Icons.Rounded.Edit,
+                        MimoIcons.Edit,
                         contentDescription = stringResource(R.string.edit),
                         tint = contentColor.copy(alpha = 0.7f),
                         modifier = Modifier.size(19.dp),
@@ -2156,7 +2157,7 @@ private fun DrawingCard(
                     onDelete()
                 }) {
                     Icon(
-                        Icons.Rounded.Delete,
+                        MimoIcons.Delete,
                         contentDescription = stringResource(R.string.delete),
                         tint = contentColor.copy(alpha = 0.7f),
                         modifier = Modifier.size(19.dp),
@@ -2187,7 +2188,7 @@ private fun DrawingEmptyCard(contentColor: Color, onClick: () -> Unit) {
             verticalArrangement = Arrangement.Center,
         ) {
             Icon(
-                Icons.Rounded.Brush,
+                MimoIcons.Brush,
                 contentDescription = null,
                 tint = contentColor.copy(alpha = 0.5f),
                 modifier = Modifier.size(30.dp),
@@ -2231,7 +2232,7 @@ private fun AudioCard(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Icon(
-                    Icons.Rounded.Mic,
+                    MimoIcons.Mic,
                     contentDescription = null,
                     tint = contentColor.copy(alpha = 0.5f),
                     modifier = Modifier.size(15.dp),
@@ -2258,7 +2259,7 @@ private fun AudioCard(
                     onDelete()
                 }) {
                     Icon(
-                        Icons.Rounded.Delete,
+                        MimoIcons.Delete,
                         contentDescription = stringResource(R.string.delete_recording),
                         tint = contentColor.copy(alpha = 0.7f),
                         modifier = Modifier.size(19.dp),
@@ -2297,7 +2298,7 @@ private fun PhotoSourceDialog(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Icon(
-                            Icons.Rounded.Image,
+                            MimoIcons.Image,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.primary,
                         )
@@ -2320,7 +2321,7 @@ private fun PhotoSourceDialog(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Icon(
-                            Icons.Rounded.PhotoCamera,
+                            MimoIcons.PhotoCamera,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.primary,
                         )
@@ -2376,7 +2377,7 @@ private fun LockGate(
                     onBack()
                 }) {
                     Icon(
-                        Icons.Rounded.ArrowBack,
+                        MimoIcons.ArrowBack,
                         contentDescription = stringResource(R.string.close),
                         tint = content,
                     )
@@ -2396,7 +2397,7 @@ private fun LockGate(
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
-                    Icons.Rounded.Lock,
+                    MimoIcons.Lock,
                     contentDescription = null,
                     tint = content,
                     modifier = Modifier.size(46.dp),

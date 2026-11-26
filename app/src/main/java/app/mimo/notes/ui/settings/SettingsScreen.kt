@@ -1,9 +1,11 @@
 package app.mimo.notes.ui.settings
 
+import app.mimo.notes.ui.components.MimoIcons
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -84,6 +86,7 @@ import app.mimo.notes.preferences.PreferencesRepository
 import app.mimo.notes.preferences.SortMode
 import app.mimo.notes.preferences.ThemeMode
 import app.mimo.notes.ui.LocalMimoHaptics
+import app.mimo.notes.ui.theme.LocalDesignLanguage
 import app.mimo.notes.ui.components.MimoBackdrop
 import app.mimo.notes.ui.components.ConfirmDialog
 import app.mimo.notes.ui.components.MimoChip
@@ -296,27 +299,27 @@ fun SettingsScreen(
                     SectionHeader(stringResource(R.string.settings_appearance))
                     SettingsCard {
                         SettingTitle(
-                            icon = Icons.Rounded.Palette,
+                            icon = MimoIcons.Palette,
                             title = stringResource(R.string.settings_theme),
                         )
                         Spacer(Modifier.height(10.dp))
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             ThemeTile(
-                                icon = Icons.Rounded.BrightnessAuto,
+                                icon = MimoIcons.BrightnessAuto,
                                 label = stringResource(R.string.theme_system),
                                 selected = settings.themeMode == ThemeMode.SYSTEM,
                                 modifier = Modifier.weight(1f),
                                 onClick = { scope.launch { preferences.setThemeMode(ThemeMode.SYSTEM) } },
                             )
                             ThemeTile(
-                                icon = Icons.Rounded.LightMode,
+                                icon = MimoIcons.LightMode,
                                 label = stringResource(R.string.theme_light),
                                 selected = settings.themeMode == ThemeMode.LIGHT,
                                 modifier = Modifier.weight(1f),
                                 onClick = { scope.launch { preferences.setThemeMode(ThemeMode.LIGHT) } },
                             )
                             ThemeTile(
-                                icon = Icons.Rounded.DarkMode,
+                                icon = MimoIcons.DarkMode,
                                 label = stringResource(R.string.theme_dark),
                                 selected = settings.themeMode == ThemeMode.DARK,
                                 modifier = Modifier.weight(1f),
@@ -328,7 +331,7 @@ fun SettingsScreen(
                         ) {
                             SettingsDivider()
                             SwitchRow(
-                                icon = Icons.Rounded.Palette,
+                                icon = MimoIcons.Palette,
                                 title = stringResource(R.string.dynamic_color),
                                 subtitle = stringResource(R.string.dynamic_color_desc),
                                 checked = settings.dynamicColor,
@@ -339,7 +342,7 @@ fun SettingsScreen(
                         }
                         SettingsDivider()
                         SwitchRow(
-                            icon = Icons.Rounded.Vibration,
+                            icon = MimoIcons.Vibration,
                             title = stringResource(R.string.haptics),
                             subtitle = stringResource(R.string.haptics_desc),
                             checked = settings.hapticsEnabled,
@@ -351,7 +354,7 @@ fun SettingsScreen(
                             },
                         )
                         SwitchRow(
-                            icon = Icons.Rounded.AutoAwesome,
+                            icon = MimoIcons.AutoAwesome,
                             title = stringResource(R.string.settings_design_nothing),
                             subtitle = stringResource(R.string.settings_design_nothing_desc),
                             checked = settings.designLanguage == DesignLanguage.NOTHING,
@@ -369,7 +372,7 @@ fun SettingsScreen(
                         )
                         SettingsDivider()
                         SwitchRow(
-                            icon = Icons.Rounded.BlurOn,
+                            icon = MimoIcons.BlurOn,
                             title = stringResource(R.string.settings_blur),
                             subtitle = stringResource(R.string.settings_blur_desc),
                             checked = settings.interfaceBlur,
@@ -379,8 +382,8 @@ fun SettingsScreen(
                         )
                         SettingsDivider()
                         SettingRow(
-                            icon = if (settings.layout == NoteLayout.GRID) Icons.Rounded.GridView
-                            else Icons.Rounded.ViewAgenda,
+                            icon = if (settings.layout == NoteLayout.GRID) MimoIcons.GridView
+                            else MimoIcons.ViewAgenda,
                             title = stringResource(R.string.settings_layout),
                             subtitle = stringResource(
                                 if (settings.layout == NoteLayout.GRID) R.string.layout_grid
@@ -396,7 +399,7 @@ fun SettingsScreen(
                             },
                             trailing = {
                                 Icon(
-                                    Icons.Rounded.ChevronRight,
+                                    MimoIcons.ChevronRight,
                                     contentDescription = null,
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
@@ -409,7 +412,7 @@ fun SettingsScreen(
                     SectionHeader(stringResource(R.string.settings_notes))
                     SettingsCard {
                         SettingRow(
-                            icon = Icons.Rounded.Sort,
+                            icon = MimoIcons.Sort,
                             title = stringResource(R.string.settings_sort),
                             subtitle = stringResource(
                                 when (settings.sortMode) {
@@ -421,7 +424,7 @@ fun SettingsScreen(
                             onClick = { sortDialog = true },
                             trailing = {
                                 Icon(
-                                    Icons.Rounded.ChevronRight,
+                                    MimoIcons.ChevronRight,
                                     contentDescription = null,
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
@@ -429,7 +432,7 @@ fun SettingsScreen(
                         )
                         SettingsDivider()
                         SwitchRow(
-                            icon = Icons.Rounded.Sort,
+                            icon = MimoIcons.Sort,
                             title = stringResource(R.string.sort_ascending),
                             checked = settings.sortAscending,
                             onCheckedChange = {
@@ -438,7 +441,7 @@ fun SettingsScreen(
                         )
                         SettingsDivider()
                         SwitchRow(
-                            icon = Icons.Rounded.Check,
+                            icon = MimoIcons.Check,
                             title = stringResource(R.string.move_checked),
                             subtitle = stringResource(R.string.move_checked_desc),
                             checked = settings.moveCheckedToBottom,
@@ -453,7 +456,7 @@ fun SettingsScreen(
                     SectionHeader(stringResource(R.string.settings_data))
                     SettingsCard {
                         SettingRow(
-                            icon = Icons.Rounded.FileOpen,
+                            icon = MimoIcons.FileOpen,
                             title = stringResource(R.string.import_keep),
                             subtitle = stringResource(R.string.import_keep_desc),
                             onClick = {
@@ -469,7 +472,7 @@ fun SettingsScreen(
                             },
                             trailing = {
                                 Icon(
-                                    Icons.Rounded.ChevronRight,
+                                    MimoIcons.ChevronRight,
                                     contentDescription = null,
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
@@ -477,13 +480,13 @@ fun SettingsScreen(
                         )
                         SettingsDivider()
                         SettingRow(
-                            icon = Icons.Rounded.DeleteSweep,
+                            icon = MimoIcons.DeleteSweep,
                             title = stringResource(R.string.settings_trash_auto),
                             subtitle = stringResource(R.string.settings_trash_auto_desc),
                         )
                         SettingsDivider()
                         SettingRow(
-                            icon = Icons.Rounded.Storage,
+                            icon = MimoIcons.Storage,
                             title = stringResource(R.string.storage_local),
                             subtitle = stringResource(R.string.storage_local_desc),
                         )
@@ -495,7 +498,7 @@ fun SettingsScreen(
                     SettingsCard {
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                             SettingRow(
-                                icon = Icons.Rounded.Alarm,
+                                icon = MimoIcons.Alarm,
                                 title = stringResource(R.string.exact_alarms),
                                 subtitle = stringResource(
                                     if (exactAlarmsAllowed) R.string.exact_alarms_allowed
@@ -510,7 +513,7 @@ fun SettingsScreen(
                                 },
                                 trailing = {
                                     Icon(
-                                        Icons.Rounded.ChevronRight,
+                                        MimoIcons.ChevronRight,
                                         contentDescription = null,
                                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                     )
@@ -519,7 +522,7 @@ fun SettingsScreen(
                             SettingsDivider()
                         }
                         SettingRow(
-                            icon = Icons.Rounded.Fingerprint,
+                            icon = MimoIcons.Fingerprint,
                             title = stringResource(R.string.security_note_lock),
                             subtitle = stringResource(
                                 if (BiometricAuth.canAuthenticate(context) || settings.hasNotePin) {
@@ -531,7 +534,7 @@ fun SettingsScreen(
                         )
                         SettingsDivider()
                         SettingRow(
-                            icon = Icons.Rounded.Lock,
+                            icon = MimoIcons.Lock,
                             title = stringResource(R.string.pin_settings_title),
                             subtitle = stringResource(
                                 if (settings.hasNotePin) R.string.pin_settings_enabled
@@ -542,7 +545,7 @@ fun SettingsScreen(
                             },
                             trailing = {
                                 Icon(
-                                    Icons.Rounded.ChevronRight,
+                                    MimoIcons.ChevronRight,
                                     contentDescription = null,
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
@@ -605,7 +608,7 @@ fun SettingsScreen(
                             Spacer(Modifier.height(10.dp))
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Icon(
-                                    Icons.Rounded.Info,
+                                    MimoIcons.Info,
                                     contentDescription = null,
                                     modifier = Modifier.size(15.dp),
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -619,7 +622,7 @@ fun SettingsScreen(
                             }
                             Spacer(Modifier.height(8.dp))
                             SettingRow(
-                                icon = Icons.Rounded.SystemUpdate,
+                                icon = MimoIcons.SystemUpdate,
                                 title = stringResource(
                                     if (updateChecking) R.string.update_checking else R.string.update_check
                                 ),
@@ -636,7 +639,7 @@ fun SettingsScreen(
                                         )
                                     } else {
                                         Icon(
-                                            Icons.Rounded.ChevronRight,
+                                            MimoIcons.ChevronRight,
                                             contentDescription = null,
                                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                         )
@@ -646,7 +649,7 @@ fun SettingsScreen(
                             Spacer(Modifier.height(6.dp))
                             Row(verticalAlignment = Alignment.Top) {
                                 Icon(
-                                    Icons.Rounded.FontDownload,
+                                    MimoIcons.FontDownload,
                                     contentDescription = null,
                                     modifier = Modifier.size(15.dp),
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -1029,10 +1032,25 @@ private fun SwitchRow(
 
 @Composable
 private fun IconBadge(icon: ImageVector) {
+    val nothing = LocalDesignLanguage.current == DesignLanguage.NOTHING
+    val shape = if (nothing) RoundedCornerShape(4.dp) else RoundedCornerShape(13.dp)
     Box(
         modifier = Modifier
             .size(38.dp)
-            .background(MaterialTheme.colorScheme.surfaceContainerHigh, RoundedCornerShape(13.dp)),
+            .then(
+                if (nothing) {
+                    Modifier.border(
+                        1.dp,
+                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.16f),
+                        shape,
+                    )
+                } else {
+                    Modifier.background(
+                        MaterialTheme.colorScheme.surfaceContainerHigh,
+                        shape,
+                    )
+                }
+            ),
         contentAlignment = Alignment.Center,
     ) {
         Icon(

@@ -1,5 +1,6 @@
 package app.mimo.notes.ui.settings
 
+import app.mimo.notes.ui.components.MimoIcons
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -70,7 +71,7 @@ fun AiSettingsCard(store: AiSettingsStore) {
         Column(Modifier.padding(18.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
-                    Icons.Rounded.AutoAwesome,
+                    MimoIcons.AutoAwesome,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary,
                 )
@@ -171,7 +172,7 @@ fun AiSettingsCard(store: AiSettingsStore) {
                 trailingIcon = {
                     IconButton(onClick = { showKey = !showKey }) {
                         Icon(
-                            if (showKey) Icons.Rounded.VisibilityOff else Icons.Rounded.Visibility,
+                            if (showKey) MimoIcons.VisibilityOff else MimoIcons.Visibility,
                             contentDescription = null,
                         )
                     }

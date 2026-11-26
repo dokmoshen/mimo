@@ -1,5 +1,6 @@
 package app.mimo.notes.ui.notes
 
+import app.mimo.notes.ui.components.MimoIcons
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -84,7 +85,7 @@ fun NotesGrid(
                     item(span = StaggeredGridItemSpan.FullLine, key = "pinned_header") {
                         SectionHeader(
                             title = androidx.compose.ui.res.stringResource(app.mimo.notes.R.string.pinned_section),
-                            icon = Icons.Rounded.PushPin,
+                            icon = MimoIcons.PushPin,
                         )
                     }
                     item(span = StaggeredGridItemSpan.FullLine, key = "pinned_row") {
@@ -154,7 +155,7 @@ fun NotesGrid(
                     item(key = "pinned_header") {
                         SectionHeader(
                             title = androidx.compose.ui.res.stringResource(app.mimo.notes.R.string.pinned_section),
-                            icon = Icons.Rounded.PushPin,
+                            icon = MimoIcons.PushPin,
                         )
                     }
                     itemsIndexed(pinnedNotes, key = { _, note -> note.id }) { index, note ->

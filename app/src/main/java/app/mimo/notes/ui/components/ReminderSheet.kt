@@ -106,7 +106,7 @@ fun ReminderSheet(
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Icon(
-                            Icons.Rounded.NotificationsActive,
+                            MimoIcons.NotificationsActive,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.onTertiaryContainer,
                             modifier = Modifier.size(21.dp),
@@ -124,14 +124,14 @@ fun ReminderSheet(
                 PickerTile(
                     label = stringResource(R.string.reminder_date),
                     value = formatFullDate(selectedDate),
-                    icon = Icons.Rounded.CalendarMonth,
+                    icon = MimoIcons.CalendarMonth,
                     modifier = Modifier.weight(1.35f),
                     onClick = { showDatePicker = true },
                 )
                 PickerTile(
                     label = stringResource(R.string.reminder_time),
                     value = "%02d:%02d".format(hour, minute),
-                    icon = Icons.Rounded.Schedule,
+                    icon = MimoIcons.Schedule,
                     modifier = Modifier.weight(1f),
                     onClick = { showTimePicker = true },
                 )
@@ -152,7 +152,7 @@ fun ReminderSheet(
                         label = repeatLabel(androidx.compose.ui.platform.LocalContext.current, value),
                         selected = repeat == value,
                         onClick = { repeat = value },
-                        leadingIcon = if (repeat == value) Icons.Rounded.Check else null,
+                        leadingIcon = if (repeat == value) MimoIcons.Check else null,
                     )
                 }
             }

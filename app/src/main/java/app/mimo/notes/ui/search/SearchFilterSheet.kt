@@ -1,5 +1,6 @@
 package app.mimo.notes.ui.search
 
+import app.mimo.notes.ui.components.MimoIcons
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -146,7 +147,7 @@ fun SearchFilterSheet(
                         ) {
                             if (color.id in colors) {
                                 Icon(
-                                    Icons.Rounded.Check,
+                                    MimoIcons.Check,
                                     contentDescription = stringResource(color.nameRes),
                                     tint = NoteColors.content(),
                                     modifier = Modifier.size(18.dp),

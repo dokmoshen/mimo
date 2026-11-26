@@ -111,7 +111,7 @@ fun FloatingDock(
                     .padding(start = 7.dp),
             ) {
                 DockIconButton(
-                    icon = Icons.Rounded.Menu,
+                    icon = MimoIcons.Menu,
                     contentDescription = stringResource(R.string.menu),
                     onClick = onMenu,
                 )
@@ -124,7 +124,7 @@ fun FloatingDock(
                     .offset(x = composeOffset),
             )
             DockIconButton(
-                icon = if (layout == NoteLayout.GRID) Icons.Rounded.ViewAgenda else Icons.Rounded.GridView,
+                icon = if (layout == NoteLayout.GRID) MimoIcons.ViewAgenda else MimoIcons.GridView,
                 contentDescription = stringResource(R.string.toggle_layout),
                 onClick = onToggleLayout,
                 modifier = Modifier
@@ -203,7 +203,7 @@ internal fun ComposeButton(
     ) {
         Box(contentAlignment = Alignment.Center) {
             Icon(
-                Icons.Rounded.Add,
+                MimoIcons.Add,
                 contentDescription = stringResource(R.string.quick_capture),
                 modifier = Modifier
                     .size(26.dp)

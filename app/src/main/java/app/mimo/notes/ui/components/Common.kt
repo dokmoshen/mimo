@@ -464,7 +464,7 @@ fun SearchPill(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(
-                Icons.Rounded.Search,
+                MimoIcons.Search,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(22.dp),
@@ -484,7 +484,7 @@ fun SearchPill(
                     onFilterClick()
                 }) {
                     Icon(
-                        Icons.Rounded.Tune,
+                        MimoIcons.Tune,
                         contentDescription = null,
                         tint = if (filterActive) MaterialTheme.colorScheme.primary
                         else MaterialTheme.colorScheme.onSurfaceVariant,
@@ -524,7 +524,7 @@ fun InlineSearchField(
                 haptics.tap()
                 onBack()
             }) {
-                Icon(Icons.Rounded.ArrowBack, contentDescription = "Назад", tint = scheme.onSurface)
+                Icon(MimoIcons.ArrowBack, contentDescription = "Назад", tint = scheme.onSurface)
             }
             Box(modifier = Modifier.weight(1f)) {
                 BasicTextField(
@@ -559,7 +559,7 @@ fun InlineSearchField(
                     haptics.tap()
                     onValueChange("")
                 }) {
-                    Icon(Icons.Rounded.Close, contentDescription = "Очистить", tint = scheme.onSurfaceVariant)
+                    Icon(MimoIcons.Close, contentDescription = "Очистить", tint = scheme.onSurfaceVariant)
                 }
             }
             if (onFilterClick != null) {
@@ -567,7 +567,7 @@ fun InlineSearchField(
                     haptics.tap()
                     onFilterClick()
                 }) {
-                    Icon(Icons.Rounded.Tune, contentDescription = "Фильтры", tint = scheme.primary)
+                    Icon(MimoIcons.Tune, contentDescription = "Фильтры", tint = scheme.primary)
                 }
             }
         }

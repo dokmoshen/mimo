@@ -1,5 +1,6 @@
 package app.mimo.notes.ui.editor
 
+import app.mimo.notes.ui.components.MimoIcons
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -141,7 +142,7 @@ fun DrawingEditorDialog(
                             onDismiss()
                         }) {
                             Icon(
-                                Icons.Rounded.Close,
+                                MimoIcons.Close,
                                 contentDescription = stringResource(R.string.close),
                                 tint = contentColor,
                             )
@@ -170,7 +171,7 @@ fun DrawingEditorDialog(
                             modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            Icon(Icons.Rounded.Check, contentDescription = null, modifier = Modifier.size(17.dp))
+                            Icon(MimoIcons.Check, contentDescription = null, modifier = Modifier.size(17.dp))
                             Spacer(Modifier.width(5.dp))
                             Text(stringResource(R.string.done), fontWeight = FontWeight.Bold)
                         }
@@ -314,7 +315,7 @@ fun DrawingEditorDialog(
                                     contentAlignment = Alignment.Center,
                                 ) {
                                     Icon(
-                                        Icons.Rounded.AutoFixOff,
+                                        MimoIcons.AutoFixOff,
                                         contentDescription = stringResource(R.string.eraser),
                                         tint = contentColor,
                                         modifier = Modifier.size(17.dp),
@@ -357,7 +358,7 @@ fun DrawingEditorDialog(
                                     enabled = undoStack.isNotEmpty(),
                                 ) {
                                     Icon(
-                                        Icons.Rounded.Undo,
+                                        MimoIcons.Undo,
                                         contentDescription = stringResource(R.string.undo),
                                         tint = contentColor.copy(alpha = if (undoStack.isNotEmpty()) 0.8f else 0.3f),
                                     )
@@ -370,7 +371,7 @@ fun DrawingEditorDialog(
                                     enabled = redoStack.isNotEmpty(),
                                 ) {
                                     Icon(
-                                        Icons.Rounded.Redo,
+                                        MimoIcons.Redo,
                                         contentDescription = stringResource(R.string.redo),
                                         tint = contentColor.copy(alpha = if (redoStack.isNotEmpty()) 0.8f else 0.3f),
                                     )
@@ -383,7 +384,7 @@ fun DrawingEditorDialog(
                                     enabled = strokes.isNotEmpty(),
                                 ) {
                                     Icon(
-                                        Icons.Rounded.DeleteSweep,
+                                        MimoIcons.DeleteSweep,
                                         contentDescription = stringResource(R.string.clear_drawing),
                                         tint = contentColor.copy(alpha = if (strokes.isNotEmpty()) 0.8f else 0.3f),
                                     )

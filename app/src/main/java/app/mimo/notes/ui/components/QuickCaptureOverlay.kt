@@ -70,7 +70,7 @@ fun rememberQuickCaptureOptions(): List<QuickCaptureOption> {
             type = NoteType.TEXT,
             titleRes = R.string.new_text,
             subtitleRes = R.string.quick_text_subtitle,
-            icon = Icons.Rounded.Notes,
+            icon = MimoIcons.Notes,
             container = scheme.surfaceContainerHighest,
             content = scheme.onSurface,
         ),
@@ -78,7 +78,7 @@ fun rememberQuickCaptureOptions(): List<QuickCaptureOption> {
             type = NoteType.CHECKLIST,
             titleRes = R.string.new_checklist,
             subtitleRes = R.string.quick_list_subtitle,
-            icon = Icons.Rounded.Checklist,
+            icon = MimoIcons.Checklist,
             container = scheme.secondaryContainer,
             content = scheme.onSecondaryContainer,
         ),
@@ -87,7 +87,7 @@ fun rememberQuickCaptureOptions(): List<QuickCaptureOption> {
             startPhoto = true,
             titleRes = R.string.new_photo,
             subtitleRes = R.string.quick_photo_subtitle,
-            icon = Icons.Rounded.Image,
+            icon = MimoIcons.Image,
             container = scheme.tertiaryContainer,
             content = scheme.onTertiaryContainer,
         ),
@@ -96,7 +96,7 @@ fun rememberQuickCaptureOptions(): List<QuickCaptureOption> {
             startDrawing = true,
             titleRes = R.string.new_drawing,
             subtitleRes = R.string.quick_drawing_subtitle,
-            icon = Icons.Rounded.Brush,
+            icon = MimoIcons.Brush,
             container = scheme.primaryContainer,
             content = scheme.onPrimaryContainer,
         ),
@@ -105,7 +105,7 @@ fun rememberQuickCaptureOptions(): List<QuickCaptureOption> {
             startAudio = true,
             titleRes = R.string.new_audio,
             subtitleRes = R.string.quick_audio_subtitle,
-            icon = Icons.Rounded.AudioFile,
+            icon = MimoIcons.AudioFile,
             container = scheme.errorContainer.copy(alpha = 0.75f),
             content = scheme.onErrorContainer,
         ),
@@ -179,7 +179,7 @@ fun QuickCaptureOverlay(
                         }
                         IconButton(onClick = onDismiss) {
                             Icon(
-                                Icons.Rounded.Close,
+                                MimoIcons.Close,
                                 contentDescription = stringResource(R.string.close),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             )

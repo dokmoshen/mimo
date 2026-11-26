@@ -1,5 +1,6 @@
 package app.mimo.notes.ui.reminders
 
+import app.mimo.notes.ui.components.MimoIcons
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -116,7 +117,7 @@ fun RemindersScreen(
                     EmptyState(
                         title = stringResource(R.string.reminders_empty_title),
                         body = stringResource(R.string.reminders_empty_body),
-                        icon = Icons.Rounded.NotificationsNone,
+                        icon = MimoIcons.NotificationsNone,
                         illustration = MimoIllustration.REMINDERS,
                     )
                 }
@@ -135,8 +136,8 @@ fun RemindersScreen(
                         item(key = "header_$title") {
                             SectionHeader(
                                 title = title,
-                                icon = if (isOverdueGroup) Icons.Rounded.NotificationsNone
-                                else Icons.Rounded.Notifications,
+                                icon = if (isOverdueGroup) MimoIcons.NotificationsNone
+                                else MimoIcons.Notifications,
                                 modifier = Modifier.padding(top = 8.dp),
                             )
                         }
@@ -223,7 +224,7 @@ private fun ReminderRow(
                 Spacer(Modifier.height(5.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
-                        Icons.Rounded.Notifications,
+                        MimoIcons.Notifications,
                         contentDescription = null,
                         tint = if (overdue) MaterialTheme.colorScheme.error else muted,
                         modifier = Modifier.size(13.dp),
@@ -265,7 +266,7 @@ private fun ReminderRow(
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Icon(
-                            Icons.Rounded.Check,
+                            MimoIcons.Check,
                             contentDescription = stringResource(R.string.mark_done),
                             tint = content.copy(alpha = 0.8f),
                             modifier = Modifier.size(18.dp),

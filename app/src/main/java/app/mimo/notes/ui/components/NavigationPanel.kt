@@ -228,7 +228,7 @@ private fun DropdownMenuPanel(
                     modifier = Modifier.size(32.dp),
                 ) {
                     Icon(
-                        Icons.Rounded.Close,
+                        MimoIcons.Close,
                         contentDescription = stringResource(R.string.close),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(18.dp),
@@ -241,35 +241,35 @@ private fun DropdownMenuPanel(
             )
             Spacer(Modifier.height(2.dp))
             MenuRow(
-                icon = Icons.Rounded.StickyNote2,
+                icon = MimoIcons.StickyNote2,
                 label = stringResource(R.string.nav_notes),
                 count = notesCount,
                 selected = selectedKey == "notes",
                 onClick = onNotes,
             )
             MenuRow(
-                icon = Icons.Rounded.Notifications,
+                icon = MimoIcons.Notifications,
                 label = stringResource(R.string.nav_reminders),
                 count = remindersCount,
                 selected = selectedKey == "reminders",
                 onClick = onReminders,
             )
             MenuRow(
-                icon = Icons.Rounded.Label,
+                icon = MimoIcons.Label,
                 label = stringResource(R.string.nav_labels),
                 count = null,
                 selected = selectedKey == "labels" || selectedKey.startsWith("label:"),
                 onClick = onLabels,
             )
             MenuRow(
-                icon = Icons.Rounded.Archive,
+                icon = MimoIcons.Archive,
                 label = stringResource(R.string.nav_archive),
                 count = archiveCount,
                 selected = selectedKey == "archive",
                 onClick = onArchive,
             )
             MenuRow(
-                icon = Icons.Rounded.Delete,
+                icon = MimoIcons.Delete,
                 label = stringResource(R.string.nav_trash),
                 count = trashCount,
                 selected = selectedKey == "trash",
@@ -280,7 +280,7 @@ private fun DropdownMenuPanel(
                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
             )
             MenuRow(
-                icon = Icons.Rounded.Settings,
+                icon = MimoIcons.Settings,
                 label = stringResource(R.string.nav_settings),
                 count = null,
                 selected = selectedKey == "settings",

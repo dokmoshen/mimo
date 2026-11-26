@@ -1,5 +1,6 @@
 package app.mimo.notes.ui.notes
 
+import app.mimo.notes.ui.components.MimoIcons
 import android.content.Context
 import android.content.ContextWrapper
 import androidx.activity.compose.BackHandler
@@ -437,19 +438,19 @@ fun NotesScreen(
                                 NotesCollection.ARCHIVE -> EmptyState(
                                     title = stringResource(R.string.archive_empty_title),
                                     body = stringResource(R.string.archive_empty_body),
-                                    icon = Icons.Rounded.Inventory2,
+                                    icon = MimoIcons.Inventory2,
                                     illustration = MimoIllustration.ARCHIVE,
                                 )
                                 NotesCollection.TRASH -> EmptyState(
                                     title = stringResource(R.string.trash_empty_title),
                                     body = stringResource(R.string.trash_empty_body),
-                                    icon = Icons.Rounded.DeleteSweep,
+                                    icon = MimoIcons.DeleteSweep,
                                     illustration = MimoIllustration.TRASH,
                                 )
                                 NotesCollection.LABEL -> EmptyState(
                                     title = label?.name ?: stringResource(R.string.labels_title),
                                     body = stringResource(R.string.notes_empty_body),
-                                    icon = Icons.Rounded.Checklist,
+                                    icon = MimoIcons.Checklist,
                                     illustration = MimoIllustration.LABELS,
                                 )
                             }
@@ -520,7 +521,7 @@ fun NotesScreen(
                             NotesCollection.TRASH -> {
                                 if (source.isNotEmpty()) {
                                     CircleActionButton(
-                                        icon = Icons.Rounded.DeleteSweep,
+                                        icon = MimoIcons.DeleteSweep,
                                         contentDescription = stringResource(R.string.empty_trash),
                                         onClick = { confirmEmptyTrash = true },
                                     )
@@ -529,7 +530,7 @@ fun NotesScreen(
                             NotesCollection.LABEL -> {
                                 Box {
                                     CircleActionButton(
-                                        icon = Icons.Rounded.MoreVert,
+                                        icon = MimoIcons.MoreVert,
                                         contentDescription = stringResource(R.string.more),
                                         onClick = { labelMenuExpanded = true },
                                     )
@@ -876,7 +877,7 @@ private fun CompactSearchBar(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(
-                Icons.Rounded.Search,
+                MimoIcons.Search,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(19.dp),
@@ -892,7 +893,7 @@ private fun CompactSearchBar(
             if (onClickFilter != null) {
                 IconButton(onClick = onClickFilter, modifier = Modifier.size(36.dp)) {
                     Icon(
-                        Icons.Rounded.Tune,
+                        MimoIcons.Tune,
                         contentDescription = stringResource(R.string.search_filters),
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(17.dp),
@@ -964,7 +965,7 @@ private fun WelcomeNotesState(
                 modifier = Modifier.padding(horizontal = 22.dp, vertical = 12.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Icon(Icons.Rounded.Add, contentDescription = null, modifier = Modifier.size(19.dp))
+                Icon(MimoIcons.Add, contentDescription = null, modifier = Modifier.size(19.dp))
                 Spacer(Modifier.width(8.dp))
                 Text(
                     stringResource(R.string.create_note),
@@ -991,7 +992,7 @@ private fun WelcomeNotesState(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Icon(
-                    Icons.Rounded.FileDownload,
+                    MimoIcons.FileDownload,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(18.dp),
@@ -1088,7 +1089,7 @@ private fun SearchLanding(
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Icon(
-                                Icons.Rounded.History,
+                                MimoIcons.History,
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.size(15.dp),
@@ -1180,7 +1181,7 @@ private fun SearchResultsPane(
                     EmptyState(
                         title = stringResource(R.string.no_results),
                         body = stringResource(R.string.no_results_body),
-                        icon = Icons.Rounded.SearchOff,
+                        icon = MimoIcons.SearchOff,
                         illustration = MimoIllustration.SEARCH,
                     )
                 }
@@ -1229,7 +1230,7 @@ private fun ScreenHeader(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             CircleActionButton(
-                icon = Icons.Rounded.ArrowBack,
+                icon = MimoIcons.ArrowBack,
                 contentDescription = stringResource(R.string.back),
                 onClick = onBack,
             )
@@ -1304,7 +1305,7 @@ private fun SelectionHeader(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         CircleActionButton(
-            icon = Icons.Rounded.Close,
+            icon = MimoIcons.Close,
             contentDescription = stringResource(R.string.cancel_selection),
             onClick = onClose,
         )
@@ -1320,7 +1321,7 @@ private fun SelectionHeader(
             onSelectAll()
         }) {
             Icon(
-                Icons.Rounded.SelectAll,
+                MimoIcons.SelectAll,
                 contentDescription = stringResource(R.string.select_all),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -1368,32 +1369,32 @@ private fun SelectionActionBar(
         ) {
             when (collection) {
                 NotesCollection.TRASH -> {
-                    BarAction(Icons.Rounded.Restore, stringResource(R.string.restore_note), onRestore)
-                    BarAction(Icons.Rounded.DeleteForever, stringResource(R.string.delete_forever), onDeleteForever)
+                    BarAction(MimoIcons.Restore, stringResource(R.string.restore_note), onRestore)
+                    BarAction(MimoIcons.DeleteForever, stringResource(R.string.delete_forever), onDeleteForever)
                 }
                 NotesCollection.ARCHIVE -> {
-                    BarAction(Icons.Rounded.Unarchive, stringResource(R.string.unarchive_note), onUnarchive)
-                    BarAction(Icons.Rounded.Label, stringResource(R.string.labels_action), onLabels)
-                    BarAction(Icons.Rounded.Delete, stringResource(R.string.delete), onTrash)
+                    BarAction(MimoIcons.Unarchive, stringResource(R.string.unarchive_note), onUnarchive)
+                    BarAction(MimoIcons.Label, stringResource(R.string.labels_action), onLabels)
+                    BarAction(MimoIcons.Delete, stringResource(R.string.delete), onTrash)
                 }
                 else -> {
                     BarAction(
-                        icon = Icons.Rounded.PushPin,
+                        icon = MimoIcons.PushPin,
                         label = stringResource(if (allPinned) R.string.unpin_note else R.string.pin_note),
                         onClick = { onPin(!allPinned) },
                     )
-                    BarAction(Icons.Rounded.Label, stringResource(R.string.labels_action), onLabels)
-                    BarAction(Icons.Rounded.ColorLens, stringResource(R.string.change_color), onColor)
-                    BarAction(Icons.Rounded.Archive, stringResource(R.string.archive_note), onArchive)
-                    BarAction(Icons.Rounded.Delete, stringResource(R.string.delete), onTrash)
+                    BarAction(MimoIcons.Label, stringResource(R.string.labels_action), onLabels)
+                    BarAction(MimoIcons.ColorLens, stringResource(R.string.change_color), onColor)
+                    BarAction(MimoIcons.Archive, stringResource(R.string.archive_note), onArchive)
+                    BarAction(MimoIcons.Delete, stringResource(R.string.delete), onTrash)
                 }
             }
             Box {
-                BarAction(Icons.Rounded.MoreHoriz, stringResource(R.string.more), { moreExpanded = true })
+                BarAction(MimoIcons.MoreHoriz, stringResource(R.string.more), { moreExpanded = true })
                 DropdownMenu(expanded = moreExpanded, onDismissRequest = { moreExpanded = false }) {
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.share_note)) },
-                        leadingIcon = { Icon(Icons.Rounded.Share, contentDescription = null) },
+                        leadingIcon = { Icon(MimoIcons.Share, contentDescription = null) },
                         onClick = {
                             haptics.tap()
                             moreExpanded = false
@@ -1403,7 +1404,7 @@ private fun SelectionActionBar(
                     if (collection != NotesCollection.TRASH) {
                         DropdownMenuItem(
                             text = { Text(stringResource(R.string.copy_note)) },
-                            leadingIcon = { Icon(Icons.Rounded.ContentCopy, contentDescription = null) },
+                            leadingIcon = { Icon(MimoIcons.ContentCopy, contentDescription = null) },
                             onClick = {
                                 haptics.tap()
                                 moreExpanded = false
@@ -1422,7 +1423,7 @@ private fun SelectionActionBar(
                             },
                             leadingIcon = {
                                 Icon(
-                                    if (allLocked) Icons.Rounded.LockOpen else Icons.Rounded.Lock,
+                                    if (allLocked) MimoIcons.LockOpen else MimoIcons.Lock,
                                     contentDescription = null,
                                 )
                             },
@@ -1437,7 +1438,7 @@ private fun SelectionActionBar(
                         DropdownMenuItem(
                             text = { Text(stringResource(R.string.delete_forever)) },
                             leadingIcon = {
-                                Icon(Icons.Rounded.DeleteForever, contentDescription = null)
+                                Icon(MimoIcons.DeleteForever, contentDescription = null)
                             },
                             onClick = {
                                 haptics.reject()

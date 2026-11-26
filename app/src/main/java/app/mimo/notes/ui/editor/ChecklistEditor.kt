@@ -1,5 +1,6 @@
 package app.mimo.notes.ui.editor
 
+import app.mimo.notes.ui.components.MimoIcons
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
@@ -162,7 +163,7 @@ fun ChecklistEditor(
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
-                    Icons.Rounded.Add,
+                    MimoIcons.Add,
                     contentDescription = null,
                     tint = content.copy(alpha = 0.5f),
                     modifier = Modifier.size(12.dp),
@@ -268,7 +269,7 @@ private fun ChecklistRow(
                         .background(content.copy(alpha = 0.88f), CircleShape)
                 )
                 Icon(
-                    Icons.Rounded.Check,
+                    MimoIcons.Check,
                     contentDescription = null,
                     tint = backgroundColor,
                     modifier = Modifier
@@ -321,7 +322,7 @@ private fun ChecklistRow(
                 modifier = Modifier.size(36.dp),
             ) {
                 Icon(
-                    Icons.Rounded.MoreVert,
+                    MimoIcons.MoreVert,
                     contentDescription = stringResource(R.string.more),
                     tint = muted.copy(alpha = 0.7f),
                     modifier = Modifier.size(17.dp),
@@ -330,7 +331,7 @@ private fun ChecklistRow(
             DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
                 DropdownMenuItem(
                     text = { Text(stringResource(R.string.move_up)) },
-                    leadingIcon = { Icon(Icons.Rounded.ArrowUpward, contentDescription = null) },
+                    leadingIcon = { Icon(MimoIcons.ArrowUpward, contentDescription = null) },
                     onClick = {
                         haptics.tap()
                         menuExpanded = false
@@ -339,7 +340,7 @@ private fun ChecklistRow(
                 )
                 DropdownMenuItem(
                     text = { Text(stringResource(R.string.move_down)) },
-                    leadingIcon = { Icon(Icons.Rounded.ArrowDownward, contentDescription = null) },
+                    leadingIcon = { Icon(MimoIcons.ArrowDownward, contentDescription = null) },
                     onClick = {
                         haptics.tap()
                         menuExpanded = false
@@ -348,7 +349,7 @@ private fun ChecklistRow(
                 )
                 DropdownMenuItem(
                     text = { Text(stringResource(R.string.indent)) },
-                    leadingIcon = { Icon(Icons.Rounded.FormatIndentIncrease, contentDescription = null) },
+                    leadingIcon = { Icon(MimoIcons.FormatIndentIncrease, contentDescription = null) },
                     onClick = {
                         haptics.tap()
                         menuExpanded = false
@@ -357,7 +358,7 @@ private fun ChecklistRow(
                 )
                 DropdownMenuItem(
                     text = { Text(stringResource(R.string.delete_item)) },
-                    leadingIcon = { Icon(Icons.Rounded.Delete, contentDescription = null) },
+                    leadingIcon = { Icon(MimoIcons.Delete, contentDescription = null) },
                     onClick = {
                         haptics.reject()
                         menuExpanded = false

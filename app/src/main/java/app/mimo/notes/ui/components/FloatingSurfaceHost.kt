@@ -318,7 +318,7 @@ private fun DockPanelContent(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             DockIconButton(
-                icon = Icons.Rounded.Menu,
+                icon = MimoIcons.Menu,
                 contentDescription = stringResource(R.string.menu),
                 onClick = onMenuClick,
             )
@@ -327,9 +327,9 @@ private fun DockPanelContent(
             Spacer(Modifier.weight(1f))
             DockIconButton(
                 icon = if (layout == NoteLayout.GRID) {
-                    Icons.Rounded.ViewAgenda
+                    MimoIcons.ViewAgenda
                 } else {
-                    Icons.Rounded.GridView
+                    MimoIcons.GridView
                 },
                 contentDescription = stringResource(R.string.toggle_layout),
                 onClick = onToggleLayout,
@@ -381,7 +381,7 @@ private fun MenuPanelContent(
                 modifier = Modifier.size(32.dp),
             ) {
                 Icon(
-                    Icons.Rounded.Close,
+                    MimoIcons.Close,
                     contentDescription = stringResource(R.string.close),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(18.dp),
@@ -394,7 +394,7 @@ private fun MenuPanelContent(
         )
         Spacer(Modifier.height(2.dp))
         HostMenuRow(
-            icon = Icons.Rounded.StickyNote2,
+            icon = MimoIcons.StickyNote2,
             label = stringResource(R.string.nav_notes),
             count = notesCount,
             selected = selectedKey == "notes",
@@ -402,7 +402,7 @@ private fun MenuPanelContent(
             modifier = Modifier.rowReveal(revealed, 0),
         )
         HostMenuRow(
-            icon = Icons.Rounded.Notifications,
+            icon = MimoIcons.Notifications,
             label = stringResource(R.string.nav_reminders),
             count = remindersCount,
             selected = selectedKey == "reminders",
@@ -410,7 +410,7 @@ private fun MenuPanelContent(
             modifier = Modifier.rowReveal(revealed, 1),
         )
         HostMenuRow(
-            icon = Icons.Rounded.Label,
+            icon = MimoIcons.Label,
             label = stringResource(R.string.nav_labels),
             count = null,
             selected = selectedKey == "labels" || selectedKey.startsWith("label:"),
@@ -418,7 +418,7 @@ private fun MenuPanelContent(
             modifier = Modifier.rowReveal(revealed, 2),
         )
         HostMenuRow(
-            icon = Icons.Rounded.Archive,
+            icon = MimoIcons.Archive,
             label = stringResource(R.string.nav_archive),
             count = archiveCount,
             selected = selectedKey == "archive",
@@ -426,7 +426,7 @@ private fun MenuPanelContent(
             modifier = Modifier.rowReveal(revealed, 3),
         )
         HostMenuRow(
-            icon = Icons.Rounded.Delete,
+            icon = MimoIcons.Delete,
             label = stringResource(R.string.nav_trash),
             count = trashCount,
             selected = selectedKey == "trash",
@@ -438,7 +438,7 @@ private fun MenuPanelContent(
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
         )
         HostMenuRow(
-            icon = Icons.Rounded.Settings,
+            icon = MimoIcons.Settings,
             label = stringResource(R.string.nav_settings),
             count = null,
             selected = selectedKey == "settings",
@@ -565,7 +565,7 @@ private fun CapturePanelContent(
                 onDismiss()
             }) {
                 Icon(
-                    Icons.Rounded.Close,
+                    MimoIcons.Close,
                     contentDescription = stringResource(R.string.close),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 )

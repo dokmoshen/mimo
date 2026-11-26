@@ -118,7 +118,7 @@ fun ChecklistIndicator(
         )
         if (complete) {
             Icon(
-                Icons.Rounded.CheckCircle,
+                MimoIcons.CheckCircle,
                 contentDescription = null,
                 tint = color,
                 modifier = Modifier

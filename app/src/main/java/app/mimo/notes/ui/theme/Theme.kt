@@ -23,6 +23,9 @@ import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import app.mimo.notes.preferences.DesignLanguage
 import app.mimo.notes.ui.LocalMimoHaptics
+import app.mimo.notes.ui.components.LocalMimoIcons
+import app.mimo.notes.ui.components.OutlinedMimoIcons
+import app.mimo.notes.ui.components.RoundedMimoIcons
 import app.mimo.notes.ui.MimoHaptics
 
 val LocalMimoDark = staticCompositionLocalOf { false }
@@ -100,6 +103,11 @@ fun MimoTheme(
         LocalMimoHaptics provides haptics,
         LocalDesignLanguage provides designLanguage,
         LocalInterfaceBlur provides interfaceBlur,
+        LocalMimoIcons provides if (designLanguage == DesignLanguage.NOTHING) {
+            OutlinedMimoIcons
+        } else {
+            RoundedMimoIcons
+        },
     ) {
         MaterialExpressiveTheme(
             colorScheme = colorScheme,
