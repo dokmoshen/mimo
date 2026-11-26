@@ -1,6 +1,7 @@
 package app.mimo.notes.ui.components
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -9,6 +10,7 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.border
@@ -31,23 +33,6 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Lock
-import androidx.compose.material.icons.rounded.Archive
-import androidx.compose.material.icons.rounded.Check
-import androidx.compose.material.icons.rounded.ColorLens
-import androidx.compose.material.icons.rounded.ContentCopy
-import androidx.compose.material.icons.rounded.Delete
-import androidx.compose.material.icons.rounded.DeleteForever
-import androidx.compose.material.icons.rounded.Label
-import androidx.compose.material.icons.rounded.Lock
-import androidx.compose.material.icons.rounded.MoreHoriz
-import androidx.compose.material.icons.rounded.Notifications
-import androidx.compose.material.icons.rounded.PushPin
-import androidx.compose.material.icons.rounded.Restore
-import androidx.compose.material.icons.rounded.Share
-import androidx.compose.material.icons.rounded.Unarchive
-import androidx.compose.material.icons.rounded.LockOpen
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -64,6 +49,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.geometry.CornerRadius
@@ -78,16 +64,19 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import kotlinx.coroutines.delay
 import java.util.Locale
 import app.mimo.notes.R
 import app.mimo.notes.data.Note
+import app.mimo.notes.preferences.DesignLanguage
 import app.mimo.notes.data.NoteType
 import app.mimo.notes.ui.text.buildRichText
 import app.mimo.notes.ui.LocalMimoHaptics
@@ -95,10 +84,12 @@ import app.mimo.notes.ui.LocalNoteTransitionState
 import app.mimo.notes.ui.LocalSharedTransitionScope
 import app.mimo.notes.ui.NoteTransitionKey
 import app.mimo.notes.ui.theme.LabelColors
+import app.mimo.notes.ui.theme.LocalDesignLanguage
 import app.mimo.notes.ui.theme.noteCardShape
 import app.mimo.notes.ui.theme.NoteColors
 import app.mimo.notes.ui.util.formatDuration
 import app.mimo.notes.ui.util.formatReminder
+import app.mimo.notes.ui.util.formatTechnicalDate
 import app.mimo.notes.ui.util.isOverdue
 
 enum class NoteCardPresentation { GRID, LIST, SPOTLIGHT }
@@ -222,6 +213,7 @@ fun NoteCard(
     } else {
         Modifier
     }
+    val nothing = LocalDesignLanguage.current == DesignLanguage.NOTHING
     var vanishAction by remember { mutableStateOf<NoteCardAction?>(null) }
     val vanish by animateFloatAsState(
         targetValue = if (vanishAction != null) 1f else 0f,
@@ -320,6 +312,20 @@ fun NoteCard(
                     .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.09f))
             )
         }
+        if (!note.isLocked && note.labels.isNotEmpty()) {
+            val spineColors = note.labels.take(2).map { LabelColors.spine(it.colorId) }
+            Canvas(Modifier.matchParentSize()) {
+                val width = (if (nothing) 3.dp else 5.dp).toPx()
+                if (spineColors.size == 1) {
+                    drawRect(spineColors.first(), size = Size(width, size.height))
+                } else {
+                    drawRect(
+                        brush = Brush.verticalGradient(spineColors),
+                        size = Size(width, size.height),
+                    )
+                }
+            }
+        }
         Column {
             if (!note.isLocked && note.images.isNotEmpty()) {
                 HeroImage(
@@ -334,6 +340,10 @@ fun NoteCard(
             Column(
                 modifier = Modifier.padding(16.dp),
             ) {
+                if (nothing && !note.isLocked) {
+                    NothingDataStrip(note = note, content = content, muted = muted)
+                    Spacer(Modifier.height(10.dp))
+                }
                 if (note.isLocked) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Surface(
@@ -407,6 +417,9 @@ fun NoteCard(
                     if (note.content.isNotBlank() || note.checklist.isNotEmpty()) {
                         Spacer(Modifier.height(6.dp))
                     }
+                }
+                if (!nothing) {
+                    NoteSignature(note = note, muted = muted)
                 }
                 if (note.content.isNotBlank() && note.type != NoteType.CHECKLIST) {
                     val annotated = remember(
@@ -602,6 +615,117 @@ fun NoteCard(
     }
 }
 
+@Composable
+private fun noteTypeLabel(note: Note): String = stringResource(
+    when {
+        note.type == NoteType.CHECKLIST -> R.string.new_checklist
+        note.type == NoteType.DRAWING -> R.string.new_drawing
+        note.type == NoteType.AUDIO -> R.string.new_audio
+        note.images.isNotEmpty() -> R.string.new_photo
+        else -> R.string.new_text
+    }
+)
+
+private fun noteExtras(note: Note): List<String> = buildList {
+    if (note.checklistTotal > 0) add("${note.checklistDone}/${note.checklistTotal}")
+    if (note.audioDurationMs > 0) add(formatDuration(note.audioDurationMs))
+    if (note.images.size > 1) add("×${note.images.size}")
+}
+
+@Composable
+private fun NothingDataStrip(
+    note: Note,
+    content: Color,
+    muted: Color,
+) {
+    val overdue = note.reminderAt?.let { isOverdue(it) } == true
+    val type = noteTypeLabel(note)
+    val extras = noteExtras(note)
+    val rich = note.type != NoteType.TEXT ||
+        note.drawing != null || note.audioPath != null || extras.isNotEmpty()
+    val label = buildString {
+        append('#')
+        append(note.id.toString().takeLast(3).padStart(3, '0'))
+        if (rich) {
+            append(" / ")
+            append(type.uppercase(Locale("ru", "RU")))
+        }
+        if (extras.isNotEmpty()) {
+            append(' ')
+            append(extras.joinToString(" "))
+        }
+    }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(
+                end = if (note.isPinned) 68.dp else 40.dp,
+                bottom = 7.dp,
+            ),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Box(
+            Modifier
+                .size(6.dp)
+                .background(
+                    if (overdue) MaterialTheme.colorScheme.primary else content.copy(alpha = 0.28f)
+                )
+        )
+        Spacer(Modifier.width(7.dp))
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = muted,
+            letterSpacing = 0.8.sp,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f),
+        )
+        Spacer(Modifier.width(8.dp))
+        Text(
+            text = formatTechnicalDate(note.modifiedAt),
+            style = MaterialTheme.typography.labelSmall,
+            color = muted.copy(alpha = 0.8f),
+            letterSpacing = 0.6.sp,
+            maxLines = 1,
+        )
+    }
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .height(0.5.dp)
+            .background(content.copy(alpha = 0.12f))
+    )
+}
+
+@Composable
+private fun NoteSignature(note: Note, muted: Color) {
+    val type = noteTypeLabel(note)
+    val extras = noteExtras(note)
+    if (note.type == NoteType.TEXT && note.images.isEmpty() && extras.isEmpty()) return
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 6.dp, bottom = 2.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = type.uppercase(Locale("ru", "RU")),
+            style = MaterialTheme.typography.labelSmall,
+            color = muted.copy(alpha = 0.72f),
+            letterSpacing = 0.7.sp,
+        )
+        extras.forEach { extra ->
+            Text(
+                text = "  ·  $extra",
+                style = MaterialTheme.typography.labelSmall,
+                color = muted.copy(alpha = 0.62f),
+                letterSpacing = 0.4.sp,
+            )
+        }
+    }
+}
+
 private fun highlightText(
     base: AnnotatedString,
     text: String,
@@ -777,7 +901,10 @@ private fun ChecklistPreview(
 ) {
     val checked = note.checklist.count { it.isChecked }
     val total = note.checklist.size
-    Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
+    Column(
+        modifier = Modifier.animateContentSize(),
+        verticalArrangement = Arrangement.spacedBy(5.dp),
+    ) {
         note.checklist.take(5).forEach { item ->
             Row(verticalAlignment = Alignment.CenterVertically) {
                 MiniCheckbox(
@@ -787,14 +914,35 @@ private fun ChecklistPreview(
                     onToggle = { onToggle(item.id) },
                 )
                 Spacer(Modifier.width(8.dp))
+                var strikeLayout by remember { mutableStateOf<TextLayoutResult?>(null) }
+                val strikeProgress by animateFloatAsState(
+                    targetValue = if (item.isChecked) 1f else 0f,
+                    animationSpec = tween(240, easing = FastOutSlowInEasing),
+                    label = "checklistStrike",
+                )
                 Text(
                     text = item.text.ifBlank { " " },
                     style = MaterialTheme.typography.bodySmall,
                     color = if (item.isChecked) muted else content.copy(alpha = 0.88f),
-                    textDecoration = if (item.isChecked) TextDecoration.LineThrough else null,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.padding(start = (item.indent * 12).dp),
+                    onTextLayout = { strikeLayout = it },
+                    modifier = Modifier
+                        .padding(start = (item.indent * 12).dp)
+                        .drawWithContent {
+                            drawContent()
+                            val layout = strikeLayout
+                            if (layout != null && strikeProgress > 0.01f && layout.lineCount > 0) {
+                                val y = (layout.getLineTop(0) + layout.getLineBottom(0)) / 2f
+                                val endX = layout.getLineRight(0) * strikeProgress
+                                drawLine(
+                                    color = muted.copy(alpha = 0.72f),
+                                    start = Offset(0f, y),
+                                    end = Offset(endX, y),
+                                    strokeWidth = 1.1.dp.toPx(),
+                                )
+                            }
+                        },
                 )
             }
         }

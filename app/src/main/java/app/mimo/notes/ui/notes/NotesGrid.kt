@@ -22,8 +22,6 @@ import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
 import androidx.compose.foundation.lazy.staggeredgrid.itemsIndexed
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.PushPin
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -58,11 +56,14 @@ fun NotesGrid(
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(start = 20.dp, end = 20.dp, top = 10.dp, bottom = 200.dp),
     highlightQuery: String? = null,
+    reflowKey: Any? = null,
 ) {
     val selectionMode = selection.isNotEmpty()
     val screenWidth = LocalConfiguration.current.screenWidthDp.dp
     val spotlightWidth = (screenWidth * 0.82f).coerceAtMost(340.dp)
-    val entranceKey = remember(settings.layout) { settings.layout to System.nanoTime() }
+    val entranceKey = remember(settings.layout, reflowKey) {
+        Triple(settings.layout, reflowKey, System.nanoTime())
+    }
 
     AnimatedContent(
         targetState = settings.layout,

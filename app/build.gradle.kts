@@ -13,8 +13,8 @@ android {
         applicationId = "app.mimo.notes"
         minSdk = 28
         targetSdk = 37
-        versionCode = 15
-        versionName = "1.12.2"
+        versionCode = 16
+        versionName = "1.13.0"
     }
 
     buildFeatures {
@@ -66,7 +66,6 @@ dependencies {
     implementation("androidx.compose.foundation:foundation")
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.material3:material3-window-size-class")
-    implementation("androidx.compose.material:material-icons-extended")
     debugImplementation("androidx.compose.ui:ui-tooling")
     implementation("androidx.compose.ui:ui-tooling-preview")
 

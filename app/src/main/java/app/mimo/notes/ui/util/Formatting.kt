@@ -17,6 +17,7 @@ private val RU = Locale("ru", "RU")
 private val DAY_MONTH = DateTimeFormatter.ofPattern("d MMM", RU)
 private val TIME = DateTimeFormatter.ofPattern("HH:mm", RU)
 private val FULL_DATE = DateTimeFormatter.ofPattern("d MMMM yyyy", RU)
+private val TECH_DATE = DateTimeFormatter.ofPattern("dd.MM.yy", RU)
 
 private fun russianForm(count: Int, one: String, few: String, many: String): String {
     val mod100 = count % 100
@@ -76,6 +77,15 @@ fun formatDuration(ms: Long): String {
     val seconds = totalSeconds % 60
     return "%d:%02d".format(minutes, seconds)
 }
+
+fun formatTechnicalDate(at: Long): String =
+    Instant.ofEpochMilli(at).atZone(ZoneId.systemDefault()).format(TECH_DATE)
+
+fun formatEditorialDate(at: Long): String =
+    Instant.ofEpochMilli(at).atZone(ZoneId.systemDefault()).format(FULL_DATE)
+
+fun readingMinutes(text: String): Int =
+    ((text.count { !it.isWhitespace() } / 900f).coerceAtLeast(1f)).toInt()
 
 fun isOverdue(at: Long): Boolean = at < System.currentTimeMillis()
 

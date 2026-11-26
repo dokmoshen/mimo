@@ -2,6 +2,7 @@ package app.mimo.notes.ui.editor
 
 import app.mimo.notes.ui.components.MimoIcons
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
@@ -16,6 +17,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -25,14 +27,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material.icons.rounded.ArrowDownward
-import androidx.compose.material.icons.rounded.ArrowUpward
-import androidx.compose.material.icons.rounded.Check
-import androidx.compose.material.icons.rounded.Delete
-import androidx.compose.material.icons.rounded.FormatIndentIncrease
-import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -43,6 +37,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -57,12 +52,16 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import app.mimo.notes.R
 import app.mimo.notes.data.ChecklistItem
 import app.mimo.notes.ui.LocalMimoHaptics
 import app.mimo.notes.ui.components.InkStampBurst
 import app.mimo.notes.ui.util.formatDuration
+import kotlin.math.roundToInt
 
 @Composable
 fun ChecklistEditor(
@@ -116,28 +115,31 @@ fun ChecklistEditor(
                 )
             }
         }
-        items.forEach { item ->
-            ChecklistRow(
-                item = item,
-                content = content,
-                muted = muted,
-                backgroundColor = backgroundColor,
-                requestFocus = focusId == item.id,
-                onFocusHandled = { if (focusId == item.id) focusId = null },
-                onTextChange = { onTextChange(item.id, it) },
-                onToggle = { onToggle(item.id) },
-                onRemove = {
-                    onRemove(item.id)
-                    focusId = null
-                },
-                onAddAfter = {
-                    focusId = onAdd(item.id)
-                },
-                onMoveUp = { onMove(item.id, -1) },
-                onMoveDown = { onMove(item.id, 1) },
-                onIndent = { onIndent(item.id) },
-            )
-            Spacer(Modifier.height(4.dp))
+        items.forEachIndexed { index, item ->
+            key(item.id) {
+                ChecklistRow(
+                    item = item,
+                    index = index,
+                    content = content,
+                    muted = muted,
+                    backgroundColor = backgroundColor,
+                    requestFocus = focusId == item.id,
+                    onFocusHandled = { if (focusId == item.id) focusId = null },
+                    onTextChange = { onTextChange(item.id, it) },
+                    onToggle = { onToggle(item.id) },
+                    onRemove = {
+                        onRemove(item.id)
+                        focusId = null
+                    },
+                    onAddAfter = {
+                        focusId = onAdd(item.id)
+                    },
+                    onMoveUp = { onMove(item.id, -1) },
+                    onMoveDown = { onMove(item.id, 1) },
+                    onIndent = { onIndent(item.id) },
+                )
+                Spacer(Modifier.height(4.dp))
+            }
         }
         val addHaptics = LocalMimoHaptics.current
         Row(
@@ -183,6 +185,7 @@ fun ChecklistEditor(
 @Composable
 private fun ChecklistRow(
     item: ChecklistItem,
+    index: Int,
     content: Color,
     muted: Color,
     backgroundColor: Color,
@@ -195,10 +198,28 @@ private fun ChecklistRow(
     onMoveUp: () -> Unit,
     onMoveDown: () -> Unit,
     onIndent: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val focusRequester = remember { FocusRequester() }
     var menuExpanded by remember { mutableStateOf(false) }
     val haptics = LocalMimoHaptics.current
+    var lastIndex by remember { mutableStateOf(index) }
+    val shift = remember { Animatable(0f) }
+    val rowHeight = with(LocalDensity.current) { 52.dp.toPx() }
+    LaunchedEffect(index) {
+        val delta = lastIndex - index
+        if (delta != 0) {
+            shift.snapTo(delta * rowHeight)
+            shift.animateTo(
+                targetValue = 0f,
+                animationSpec = spring(
+                    dampingRatio = 0.82f,
+                    stiffness = Spring.StiffnessMediumLow,
+                ),
+            )
+        }
+        lastIndex = index
+    }
     val checkFill by animateFloatAsState(
         targetValue = if (item.isChecked) 1f else 0f,
         animationSpec = spring(

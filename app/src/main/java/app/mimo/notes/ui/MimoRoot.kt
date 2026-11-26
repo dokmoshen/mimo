@@ -57,6 +57,7 @@ import app.mimo.notes.ui.components.GlassBackdrop
 import app.mimo.notes.ui.components.LocalGlassRoot
 import app.mimo.notes.ui.components.captureGlassBackdrop
 import app.mimo.notes.ui.components.QuickCaptureOption
+import app.mimo.notes.ui.components.ThemeWaveOverlay
 import app.mimo.notes.ui.editor.EditorLaunch
 import app.mimo.notes.ui.editor.NoteEditorScreen
 import app.mimo.notes.ui.editor.NoteEditorViewModel
@@ -476,6 +477,11 @@ fun MimoRoot(
                 )
             }
 
+            ThemeWaveOverlay(
+                designLanguage = settings.designLanguage,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.fillMaxSize(),
+            )
                 }
             }
         }

@@ -26,7 +26,10 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.BorderStroke
@@ -49,6 +52,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -58,28 +62,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ArrowBack
-import androidx.compose.material.icons.rounded.Archive
-import androidx.compose.material.icons.rounded.AutoFixHigh
-import androidx.compose.material.icons.rounded.Brush
-import androidx.compose.material.icons.rounded.Check
-import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material.icons.rounded.ContentCopy
-import androidx.compose.material.icons.rounded.Delete
-import androidx.compose.material.icons.rounded.DeleteForever
-import androidx.compose.material.icons.rounded.Edit
-import androidx.compose.material.icons.rounded.Label
-import androidx.compose.material.icons.rounded.Image
-import androidx.compose.material.icons.rounded.PhotoCamera
-import androidx.compose.material.icons.rounded.Lock
-import androidx.compose.material.icons.rounded.LockOpen
-import androidx.compose.material.icons.rounded.MenuBook
-import androidx.compose.material.icons.rounded.Mic
-import androidx.compose.material.icons.rounded.MoreVert
-import androidx.compose.material.icons.rounded.Notifications
-import androidx.compose.material.icons.rounded.PushPin
-import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -97,6 +79,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -105,6 +88,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
@@ -112,6 +96,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
@@ -122,12 +107,18 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.core.content.ContextCompat
@@ -176,14 +167,18 @@ import app.mimo.notes.ui.text.isInlineFormatActive
 import app.mimo.notes.ui.text.isListActive
 import app.mimo.notes.ui.text.proofreadText
 import app.mimo.notes.ui.text.toggleList
+import app.mimo.notes.preferences.DesignLanguage
 import app.mimo.notes.ui.theme.LabelColors
+import app.mimo.notes.ui.theme.LocalDesignLanguage
 import app.mimo.notes.ui.theme.LocalMimoDark
 import app.mimo.notes.ui.theme.NoteColors
 import app.mimo.notes.ui.LocalNoteTransitionState
 import app.mimo.notes.ui.LocalSharedTransitionScope
 import app.mimo.notes.ui.NoteImageKey
 import app.mimo.notes.ui.NoteTransitionKey
+import app.mimo.notes.ui.util.formatEditorialDate
 import app.mimo.notes.ui.util.formatReminder
+import app.mimo.notes.ui.util.readingMinutes
 import app.mimo.notes.ui.util.isOverdue
 import app.mimo.notes.ui.util.shareNote
 import app.mimo.notes.util.BiometricAuth
@@ -194,6 +189,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.launch
 import java.io.File
+import kotlin.math.roundToInt
 
 private data class EditorPinRequest(
     val lock: Boolean,
@@ -315,6 +311,7 @@ fun NoteEditorScreen(
     var cameraFile by remember { mutableStateOf<File?>(null) }
     var initialActionHandled by remember { mutableStateOf(false) }
     var backProgress by remember { mutableFloatStateOf(0f) }
+    var readerViewportHeight by remember { mutableIntStateOf(0) }
     var closing by remember { mutableStateOf(false) }
     var readMode by remember(viewModel.noteId) { mutableStateOf(!viewModel.isFresh) }
     var readerRevealed by remember(readMode) { mutableStateOf(false) }
@@ -322,6 +319,11 @@ fun NoteEditorScreen(
         targetValue = if (readerRevealed) 1f else 0f,
         animationSpec = tween(340, easing = FastOutSlowInEasing),
         label = "readerReveal",
+    )
+    val sidePadding by animateDpAsState(
+        targetValue = if (readMode) 0.dp else 22.dp,
+        animationSpec = tween(240, easing = FastOutSlowInEasing),
+        label = "editorSidePadding",
     )
 
     fun enterEditMode() {
@@ -780,11 +782,12 @@ fun NoteEditorScreen(
             .fillMaxSize()
             .graphicsLayer {
                 val p = backProgress
-                scaleX = 1f - 0.035f * p
-                scaleY = 1f - 0.035f * p
-                translationY = 18.dp.toPx() * p
-                alpha = 1f - 0.12f * p
+                scaleX = 1f - 0.07f * p
+                scaleY = 1f - 0.07f * p
+                translationY = 38.dp.toPx() * p
+                alpha = 1f - 0.18f * p
             }
+            .clip(RoundedCornerShape((30f * backProgress).dp))
             .background(background)
     ) {
         Canvas(Modifier.fillMaxSize()) {
@@ -855,7 +858,8 @@ fun NoteEditorScreen(
                     .nestedScroll(chromeScrollConnection)
                     .verticalScroll(contentScroll)
                     .imePadding()
-                    .padding(horizontal = 22.dp),
+                    .onSizeChanged { readerViewportHeight = it.height }
+                    .padding(horizontal = sidePadding),
             ) {
                 if (readMode) {
                     ReaderBody(
@@ -1109,6 +1113,20 @@ fun NoteEditorScreen(
                     )
                 }
             }
+        }
+
+        if (readMode) {
+            ReaderProgressFooter(
+                scrollState = contentScroll,
+                viewportHeight = readerViewportHeight,
+                content = content,
+                muted = muted,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .navigationBarsPadding()
+                    .padding(horizontal = 22.dp)
+                    .padding(bottom = 4.dp),
+            )
         }
 
         SnackbarHost(
@@ -1375,6 +1393,55 @@ private fun EditorAudioSection(
     }
 }
 
+@Composable
+private fun ReaderProgressFooter(
+    scrollState: androidx.compose.foundation.ScrollState,
+    viewportHeight: Int,
+    content: Color,
+    muted: Color,
+    modifier: Modifier = Modifier,
+) {
+    val max = scrollState.maxValue
+    val progress = if (max > 0) (scrollState.value.toFloat() / max).coerceIn(0f, 1f) else 0f
+    val page = if (viewportHeight > 0) 1 + scrollState.value / viewportHeight else 1
+    val pages = if (viewportHeight > 0) {
+        ((max + viewportHeight - 1) / viewportHeight).coerceAtLeast(1)
+    } else {
+        1
+    }
+    Column(modifier.fillMaxWidth()) {
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = "%02d / %02d".format(page, pages),
+                style = MaterialTheme.typography.labelSmall,
+                color = muted,
+                letterSpacing = 0.8.sp,
+            )
+            Spacer(Modifier.weight(1f))
+            Text(
+                text = "MIMO",
+                style = MaterialTheme.typography.labelSmall,
+                color = muted.copy(alpha = 0.45f),
+                letterSpacing = 1.4.sp,
+            )
+        }
+        Spacer(Modifier.height(4.dp))
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .height(1.5.dp)
+                .background(content.copy(alpha = 0.12f))
+        ) {
+            Box(
+                Modifier
+                    .fillMaxWidth(progress)
+                    .height(1.5.dp)
+                    .background(content.copy(alpha = 0.55f))
+            )
+        }
+    }
+}
+
 @OptIn(ExperimentalLayoutApi::class, ExperimentalSharedTransitionApi::class)
 @Composable
 private fun ReaderBody(
@@ -1417,14 +1484,27 @@ private fun ReaderBody(
         animationSpec = tween(180, easing = FastOutSlowInEasing),
         label = "readerTitleCollapse",
     )
+    val nothing = LocalDesignLanguage.current == DesignLanguage.NOTHING
+    val backgroundColor = NoteColors.editorBackground(viewModel.colorId)
+    val reading = readingMinutes(
+        buildString {
+            append(viewModel.title)
+            append(' ')
+            append(viewModel.body.text)
+            viewModel.checklist.forEach { append(' ').append(it.text) }
+        }
+    )
+    val dateText = remember(viewModel.noteModifiedAt) {
+        formatEditorialDate(viewModel.noteModifiedAt)
+    }
 
     Column(modifier) {
         if (viewModel.images.isNotEmpty()) {
-            Spacer(Modifier.height(4.dp))
             ReaderHeroImage(
                 path = viewModel.images.first(),
                 count = viewModel.images.size,
                 contentColor = content,
+                backgroundColor = backgroundColor,
                 scrollState = scrollState,
                 modifier = Modifier
                     .then(heroSharedModifier)
@@ -1434,137 +1514,223 @@ private fun ReaderBody(
                     },
                 onOpen = { onOpenImage(viewModel.images.first()) },
             )
-            Spacer(Modifier.height(12.dp))
         }
-        if (viewModel.labels.isNotEmpty() || viewModel.reminderAt != null) {
-            FlowRow(
+        Column(Modifier.fillMaxWidth().padding(horizontal = 22.dp)) {
+            Row(
                 modifier = Modifier
-                    .padding(top = 6.dp)
+                    .fillMaxWidth()
+                    .padding(top = if (viewModel.images.isEmpty()) 14.dp else 18.dp)
                     .graphicsLayer {
                         alpha = reveal
-                        translationY = (1f - reveal) * 12.dp.toPx()
+                        translationY = (1f - reveal) * 8.dp.toPx()
                     },
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                viewModel.labels.forEach { label ->
-                    LabelChip(
-                        name = label.name,
-                        colorId = label.colorId,
-                        onClick = { },
-                    )
-                }
-                if (viewModel.reminderAt != null) {
-                    ReminderToken(
-                        text = formatReminder(
-                            LocalContext.current,
-                            viewModel.reminderAt!!,
-                            viewModel.reminderRepeat,
-                        ),
-                        overdue = isOverdue(viewModel.reminderAt!!),
-                        contentColor = content,
-                        onClick = { },
-                        onClear = null,
-                    )
-                }
-            }
-        }
-        if (viewModel.title.isNotBlank()) {
-            Text(
-                text = viewModel.title,
-                style = MaterialTheme.typography.headlineLarge.copy(
-                    fontSize = (31f - 5f * titleCollapse).sp,
-                    lineHeight = (38f - 7f * titleCollapse).sp,
-                    fontWeight = FontWeight.Bold,
-                ),
-                color = content,
-                modifier = Modifier
-                    .graphicsLayer {
-                        alpha = reveal
-                        translationY = (1f - reveal) * 10.dp.toPx()
-                    }
-                    .padding(top = 16.dp, end = 8.dp),
-            )
-        }
-        Column(
-            modifier = Modifier.graphicsLayer {
-                alpha = reveal
-                translationY = (1f - reveal) * 18.dp.toPx()
-            },
-        ) {
-            if (viewModel.body.text.isNotBlank()) {
-                Spacer(Modifier.height(12.dp))
-                Text(
-                    text = viewModel.body.annotatedString,
-                    style = MaterialTheme.typography.bodyLarge.copy(
-                        fontSize = 17.sp,
-                        lineHeight = 28.sp,
-                    ),
-                    color = content.copy(alpha = 0.9f),
-                )
-            }
-            if (viewModel.checklist.isNotEmpty()) {
-                Spacer(Modifier.height(16.dp))
-                ReaderChecklist(
-                    items = viewModel.checklist,
-                    content = content,
-                    muted = muted,
-                    backgroundColor = NoteColors.background(viewModel.colorId),
-                    onToggle = viewModel::toggleChecklistItem,
-                )
-            }
-            viewModel.drawing?.let { drawing ->
-                Spacer(Modifier.height(16.dp))
-                Surface(
-                    shape = RoundedCornerShape(24.dp),
-                    color = content.copy(alpha = 0.04f),
-                    border = BorderStroke(1.dp, content.copy(alpha = 0.12f)),
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    app.mimo.notes.ui.components.DrawingPreview(
-                        drawing = drawing,
-                        backgroundColor = NoteColors.background(viewModel.colorId),
-                        contentColor = content,
+                if (nothing) {
+                    Box(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .height(210.dp),
+                            .size(28.dp)
+                            .border(1.dp, content.copy(alpha = 0.28f)),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(
+                            text = "%02d".format(viewModel.noteId % 100),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = content,
+                        )
+                    }
+                } else {
+                    Box(
+                        Modifier
+                            .size(8.dp)
+                            .background(MaterialTheme.colorScheme.primary)
                     )
                 }
-            }
-            if (galleryImages.isNotEmpty()) {
-                Spacer(Modifier.height(16.dp))
-                ReaderImageGrid(
-                    images = galleryImages,
-                    contentColor = content,
-                    onOpen = onOpenImage,
+                Spacer(Modifier.width(9.dp))
+                Text(
+                    text = dateText.uppercase(),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = muted,
+                    letterSpacing = 1.sp,
+                )
+                Text(
+                    text = "  ·  $reading МИН",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = muted.copy(alpha = 0.75f),
+                    letterSpacing = 0.8.sp,
+                )
+                Spacer(Modifier.weight(1f))
+                Text(
+                    text = "MIMO",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = muted.copy(alpha = 0.48f),
+                    letterSpacing = 1.6.sp,
                 )
             }
-            if (viewModel.audioPath != null) {
-                Spacer(Modifier.height(16.dp))
-                Surface(
-                    shape = RoundedCornerShape(24.dp),
-                    color = content.copy(alpha = 0.04f),
-                    border = BorderStroke(1.dp, content.copy(alpha = 0.12f)),
-                    modifier = Modifier.fillMaxWidth(),
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(top = 9.dp)
+                    .height(0.5.dp)
+                    .background(content.copy(alpha = 0.14f))
+            )
+            if (viewModel.labels.isNotEmpty() || viewModel.reminderAt != null) {
+                FlowRow(
+                    modifier = Modifier
+                        .padding(top = 10.dp)
+                        .graphicsLayer {
+                            alpha = reveal
+                            translationY = (1f - reveal) * 12.dp.toPx()
+                        },
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    Column(Modifier.padding(8.dp)) {
-                        Text(
-                            stringResource(R.string.new_audio),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = muted,
-                            modifier = Modifier.padding(start = 8.dp, top = 2.dp),
+                    viewModel.labels.forEach { label ->
+                        LabelChip(
+                            name = label.name,
+                            colorId = label.colorId,
+                            onClick = { },
                         )
-                        app.mimo.notes.ui.components.AudioPlaybackRow(
-                            path = viewModel.audioPath!!,
-                            durationMs = viewModel.audioDurationMs,
-                            tint = content,
-                            container = Color.Transparent,
+                    }
+                    if (viewModel.reminderAt != null) {
+                        ReminderToken(
+                            text = formatReminder(
+                                LocalContext.current,
+                                viewModel.reminderAt!!,
+                                viewModel.reminderRepeat,
+                            ),
+                            overdue = isOverdue(viewModel.reminderAt!!),
+                            contentColor = content,
+                            onClick = { },
+                            onClear = null,
                         )
                     }
                 }
             }
-            Spacer(Modifier.height(120.dp))
+            if (viewModel.title.isNotBlank()) {
+                Text(
+                    text = viewModel.title,
+                    style = MaterialTheme.typography.headlineLarge.copy(
+                        fontSize = (31f - 5f * titleCollapse).sp,
+                        lineHeight = (38f - 7f * titleCollapse).sp,
+                        fontWeight = FontWeight.Bold,
+                    ),
+                    color = content,
+                    modifier = Modifier
+                        .graphicsLayer {
+                            alpha = reveal
+                            translationY = (1f - reveal) * 10.dp.toPx()
+                        }
+                        .padding(top = 16.dp, end = 8.dp),
+                )
+            }
+            if (viewModel.title.isNotBlank()) {
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(top = 14.dp)
+                        .height(0.5.dp)
+                        .background(content.copy(alpha = 0.12f))
+                )
+            }
+            Column(
+                modifier = Modifier.graphicsLayer {
+                    alpha = reveal
+                    translationY = (1f - reveal) * 18.dp.toPx()
+                },
+            ) {
+                if (viewModel.body.text.isNotBlank()) {
+                    Spacer(Modifier.height(14.dp))
+                    Text(
+                        text = if (nothing) viewModel.body.annotatedString
+                        else withInitialCap(viewModel.body.annotatedString),
+                        style = MaterialTheme.typography.bodyLarge.copy(
+                            fontSize = 17.sp,
+                            lineHeight = 29.sp,
+                        ),
+                        color = content.copy(alpha = 0.9f),
+                    )
+                }
+                if (viewModel.checklist.isNotEmpty()) {
+                    Spacer(Modifier.height(16.dp))
+                    ReaderChecklist(
+                        items = viewModel.checklist,
+                        content = content,
+                        muted = muted,
+                        backgroundColor = NoteColors.background(viewModel.colorId),
+                        onToggle = viewModel::toggleChecklistItem,
+                    )
+                }
+                viewModel.drawing?.let { drawing ->
+                    Spacer(Modifier.height(16.dp))
+                    Surface(
+                        shape = RoundedCornerShape(24.dp),
+                        color = content.copy(alpha = 0.04f),
+                        border = BorderStroke(1.dp, content.copy(alpha = 0.12f)),
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        app.mimo.notes.ui.components.DrawingPreview(
+                            drawing = drawing,
+                            backgroundColor = NoteColors.background(viewModel.colorId),
+                            contentColor = content,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(210.dp),
+                        )
+                    }
+                }
+                if (galleryImages.isNotEmpty()) {
+                    Spacer(Modifier.height(16.dp))
+                    ReaderImageGrid(
+                        images = galleryImages,
+                        contentColor = content,
+                        onOpen = onOpenImage,
+                    )
+                }
+                if (viewModel.audioPath != null) {
+                    Spacer(Modifier.height(16.dp))
+                    Surface(
+                        shape = RoundedCornerShape(24.dp),
+                        color = content.copy(alpha = 0.04f),
+                        border = BorderStroke(1.dp, content.copy(alpha = 0.12f)),
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Column(Modifier.padding(8.dp)) {
+                            Text(
+                                stringResource(R.string.new_audio),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = muted,
+                                modifier = Modifier.padding(start = 8.dp, top = 2.dp),
+                            )
+                            app.mimo.notes.ui.components.AudioPlaybackRow(
+                                path = viewModel.audioPath!!,
+                                durationMs = viewModel.audioDurationMs,
+                                tint = content,
+                                container = Color.Transparent,
+                            )
+                        }
+                    }
+                }
+                Spacer(Modifier.height(130.dp))
+            }
         }
+    }
+}
+
+private fun withInitialCap(text: AnnotatedString): AnnotatedString {
+    val index = text.text.indexOfFirst { !it.isWhitespace() }
+    if (index < 0) return text
+    return buildAnnotatedString {
+        append(text)
+        addStyle(
+            SpanStyle(
+                fontSize = 33.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = (-0.5).sp,
+            ),
+            index,
+            index + 1,
+        )
     }
 }
 
@@ -1573,6 +1739,7 @@ private fun ReaderHeroImage(
     path: String,
     count: Int,
     contentColor: Color,
+    backgroundColor: Color,
     scrollState: androidx.compose.foundation.ScrollState,
     modifier: Modifier = Modifier,
     onOpen: () -> Unit,
@@ -1581,8 +1748,7 @@ private fun ReaderHeroImage(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .height(220.dp)
-            .clip(RoundedCornerShape(26.dp))
+            .height(238.dp)
             .clickable {
                 haptics.press()
                 onOpen()
@@ -1613,10 +1779,14 @@ private fun ReaderHeroImage(
             Modifier
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
-                .height(72.dp)
+                .height(96.dp)
                 .background(
                     androidx.compose.ui.graphics.Brush.verticalGradient(
-                        listOf(Color.Transparent, contentColor.copy(alpha = 0.16f))
+                        listOf(
+                            Color.Transparent,
+                            backgroundColor.copy(alpha = 0.55f),
+                            backgroundColor,
+                        )
                     )
                 )
         )
@@ -1650,7 +1820,10 @@ private fun ReaderChecklist(
 ) {
     val haptics = LocalMimoHaptics.current
     val checked = items.count { it.isChecked }
-    Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
+    Column(
+        modifier = Modifier.animateContentSize(),
+        verticalArrangement = Arrangement.spacedBy(5.dp),
+    ) {
         if (items.size > 1) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -1673,7 +1846,9 @@ private fun ReaderChecklist(
                 )
             }
         }
-        items.forEach { item ->
+        items.forEachIndexed { index, item ->
+            key(item.id) {
+            ReorderShift(index) {
             val fill by animateFloatAsState(
                 targetValue = if (item.isChecked) 1f else 0f,
                 animationSpec = spring(
@@ -1729,14 +1904,66 @@ private fun ReaderChecklist(
                     }
                 }
                 Spacer(Modifier.width(10.dp))
+                var strikeLayout by remember { mutableStateOf<TextLayoutResult?>(null) }
+                val strikeProgress by animateFloatAsState(
+                    targetValue = if (item.isChecked) 1f else 0f,
+                    animationSpec = tween(240, easing = FastOutSlowInEasing),
+                    label = "readerStrike",
+                )
                 Text(
                     item.text,
                     style = MaterialTheme.typography.bodyLarge,
                     color = if (item.isChecked) muted else content,
-                    textDecoration = if (item.isChecked) TextDecoration.LineThrough else null,
+                    onTextLayout = { strikeLayout = it },
+                    modifier = Modifier.drawWithContent {
+                        drawContent()
+                        val layout = strikeLayout
+                        if (layout != null && strikeProgress > 0.01f && layout.lineCount > 0) {
+                            val y = (layout.getLineTop(0) + layout.getLineBottom(0)) / 2f
+                            drawLine(
+                                color = muted.copy(alpha = 0.72f),
+                                start = Offset(0f, y),
+                                end = Offset(layout.getLineRight(0) * strikeProgress, y),
+                                strokeWidth = 1.2.dp.toPx(),
+                            )
+                        }
+                    },
                 )
             }
+            }
+            }
         }
+    }
+}
+
+@Composable
+private fun ReorderShift(
+    index: Int,
+    content: @Composable () -> Unit,
+) {
+    var lastIndex by remember { mutableStateOf(index) }
+    val shift = remember { Animatable(0f) }
+    val rowHeight = with(LocalDensity.current) { 58.dp.toPx() }
+    LaunchedEffect(index) {
+        val delta = lastIndex - index
+        if (delta != 0) {
+            shift.snapTo(delta * rowHeight)
+            shift.animateTo(
+                targetValue = 0f,
+                animationSpec = spring(
+                    dampingRatio = 0.82f,
+                    stiffness = Spring.StiffnessMediumLow,
+                ),
+            )
+        }
+        lastIndex = index
+    }
+    Box(
+        Modifier
+            .offset { IntOffset(0, shift.value.roundToInt()) }
+            .zIndex(if (shift.value != 0f) 1f else 0f),
+    ) {
+        content()
     }
 }
 

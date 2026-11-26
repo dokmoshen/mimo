@@ -25,13 +25,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.AudioFile
-import androidx.compose.material.icons.rounded.Brush
-import androidx.compose.material.icons.rounded.Checklist
-import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material.icons.rounded.Image
-import androidx.compose.material.icons.rounded.Notes
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme

@@ -142,10 +142,21 @@ object LabelColors {
 
     fun byId(id: Int): LabelColor = all.getOrElse(id) { all.first() }
 
+    private val nothingLightShades = listOf(
+        Color(0xFF1F1F1F), Color(0xFF343434), Color(0xFF474747), Color(0xFF5A5A5A),
+        Color(0xFF6D6D6D), Color(0xFF808080), Color(0xFF939393), Color(0xFFA6A6A6),
+    )
+
+    private val nothingDarkShades = listOf(
+        Color(0xFFF2F2F2), Color(0xFFDCDCDC), Color(0xFFC6C6C6), Color(0xFFB0B0B0),
+        Color(0xFF9A9A9A), Color(0xFF848484), Color(0xFF6E6E6E), Color(0xFF585858),
+    )
+
     @Composable
     fun accent(id: Int): Color {
         if (LocalDesignLanguage.current == DesignLanguage.NOTHING) {
-            return if (LocalMimoDark.current) Color(0xFFFF4D4D) else Color(0xFFD71921)
+            val shades = if (LocalMimoDark.current) nothingDarkShades else nothingLightShades
+            return shades[id.mod(shades.size)]
         }
         val color = byId(id)
         return if (LocalMimoDark.current) color.accentDark else color.accentLight
@@ -159,4 +170,7 @@ object LabelColors {
         val color = byId(id)
         return if (LocalMimoDark.current) color.containerDark else color.containerLight
     }
+
+    @Composable
+    fun spine(id: Int): Color = accent(id)
 }

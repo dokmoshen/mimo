@@ -128,6 +128,9 @@ class NoteEditorViewModel(
 
     private var createdAt = System.currentTimeMillis()
     private var modifiedAt = createdAt
+
+    /** Stable date shown by the editorial masthead. */
+    val noteModifiedAt: Long get() = modifiedAt
     private var trashed = false
     private var trashedAt: Long? = null
     private var saveJob: Job? = null

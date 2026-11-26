@@ -6,8 +6,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Image
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -16,10 +14,14 @@ import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import kotlinx.coroutines.Dispatchers
+import app.mimo.notes.preferences.DesignLanguage
+import app.mimo.notes.ui.theme.LocalDesignLanguage
 import kotlinx.coroutines.withContext
 import java.io.File
 
@@ -69,12 +71,21 @@ fun LocalImage(
     contentScale: ContentScale = ContentScale.Crop,
 ) {
     val image = rememberFileImage(path)
+    val nothing = LocalDesignLanguage.current == DesignLanguage.NOTHING
+    val monoFilter = remember(nothing) {
+        if (nothing) {
+            ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(0f) })
+        } else {
+            null
+        }
+    }
     if (image != null) {
         Image(
             bitmap = image,
             contentDescription = contentDescription,
             modifier = modifier,
             contentScale = contentScale,
+            colorFilter = monoFilter,
         )
     } else {
         Box(

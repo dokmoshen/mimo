@@ -34,17 +34,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Archive
-import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material.icons.rounded.Delete
-import androidx.compose.material.icons.rounded.GridView
-import androidx.compose.material.icons.rounded.Label
-import androidx.compose.material.icons.rounded.Menu
-import androidx.compose.material.icons.rounded.Notifications
-import androidx.compose.material.icons.rounded.Settings
-import androidx.compose.material.icons.rounded.StickyNote2
-import androidx.compose.material.icons.rounded.ViewAgenda
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -54,6 +43,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -64,6 +54,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -117,6 +108,20 @@ fun FloatingSurfaceHost(
     var panelScreen by remember { mutableStateOf<Rect?>(null) }
     val screen = panelScreen
     val glassActive = expanded && blurEnabled && backdrop != null && screen != null
+    var panelOrigin by remember { mutableFloatStateOf(0.5f) }
+    LaunchedEffect(mode) {
+        if (mode != FloatingPanelMode.DOCK) {
+            panelOrigin = if (mode == FloatingPanelMode.MENU) 0.18f else 0.5f
+        }
+    }
+    val originProgress by animateFloatAsState(
+        targetValue = if (expanded) 1f else 0f,
+        animationSpec = spring(
+            dampingRatio = 0.84f,
+            stiffness = Spring.StiffnessMediumLow,
+        ),
+        label = "panelOriginProgress",
+    )
 
     Box(Modifier.fillMaxSize()) {
         AnimatedVisibility(
@@ -222,7 +227,14 @@ fun FloatingSurfaceHost(
                         maxDrag = 46.dp,
                         translationFactor = 0.28f,
                         stretchAmount = 0.055f,
-                    ),
+                    )
+                    .graphicsLayer {
+                        val p = if (!expanded && originProgress < 0.02f) 1f else originProgress
+                        transformOrigin = TransformOrigin(panelOrigin, 1f)
+                        scaleX = 0.9f + 0.1f * p
+                        scaleY = 0.96f + 0.04f * p
+                        translationX = (panelOrigin - 0.5f) * (1f - p) * 34.dp.toPx()
+                    },
                 shape = RoundedCornerShape(corner),
                 color = if (glassActive) Color.Transparent else surfaceColor,
                 border = BorderStroke(
@@ -395,6 +407,14 @@ private fun MenuPanelContent(
     val haptics = LocalMimoHaptics.current
     var revealed by remember { mutableStateOf(false) }
     LaunchedEffect(visible) { revealed = visible }
+    val closeSpin by animateFloatAsState(
+        targetValue = if (revealed) 0f else -85f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMediumLow,
+        ),
+        label = "menuCloseSpin",
+    )
     Column(modifier.padding(8.dp)) {
         Row(
             modifier = Modifier
@@ -421,7 +441,9 @@ private fun MenuPanelContent(
                     MimoIcons.Close,
                     contentDescription = stringResource(R.string.close),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(18.dp),
+                    modifier = Modifier
+                        .size(18.dp)
+                        .graphicsLayer { rotationZ = closeSpin },
                 )
             }
         }
@@ -579,6 +601,14 @@ private fun CapturePanelContent(
     val haptics = LocalMimoHaptics.current
     var revealed by remember { mutableStateOf(false) }
     LaunchedEffect(visible) { revealed = visible }
+    val closeSpin by animateFloatAsState(
+        targetValue = if (revealed) 0f else -85f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMediumLow,
+        ),
+        label = "captureCloseSpin",
+    )
     val options = rememberQuickCaptureOptions()
     Column(modifier.padding(14.dp)) {
         Row(
@@ -605,6 +635,7 @@ private fun CapturePanelContent(
                     MimoIcons.Close,
                     contentDescription = stringResource(R.string.close),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.graphicsLayer { rotationZ = closeSpin },
                 )
             }
         }

@@ -50,36 +50,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Archive
-import androidx.compose.material.icons.rounded.ArrowBack
-import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material.icons.rounded.Checklist
-import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material.icons.rounded.ColorLens
-import androidx.compose.material.icons.rounded.ContentCopy
-import androidx.compose.material.icons.rounded.Delete
-import androidx.compose.material.icons.rounded.DeleteForever
-import androidx.compose.material.icons.rounded.DeleteSweep
-import androidx.compose.material.icons.rounded.FileDownload
-import androidx.compose.material.icons.rounded.History
-import androidx.compose.material.icons.rounded.Info
-import androidx.compose.material.icons.rounded.Label
-import androidx.compose.material.icons.rounded.MoreHoriz
-import androidx.compose.material.icons.rounded.MoreVert
-import androidx.compose.material.icons.rounded.PushPin
-import androidx.compose.material.icons.rounded.Restore
-import androidx.compose.material.icons.rounded.SelectAll
-import androidx.compose.material.icons.rounded.Share
-import androidx.compose.material.icons.rounded.Unarchive
-import androidx.compose.material.icons.rounded.AutoAwesome
-import androidx.compose.material.icons.rounded.Inventory2
-import androidx.compose.material.icons.rounded.LockOpen
-import androidx.compose.material.icons.rounded.Lock
-import androidx.compose.material.icons.rounded.ManageSearch
-import androidx.compose.material.icons.rounded.Search
-import androidx.compose.material.icons.rounded.Tune
-import androidx.compose.material.icons.rounded.SearchOff
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -1207,6 +1177,7 @@ private fun SearchResultsPane(
                         bottom = 30.dp,
                     ),
                     highlightQuery = viewModel.searchQuery,
+                    reflowKey = filter,
                 )
             }
         }
