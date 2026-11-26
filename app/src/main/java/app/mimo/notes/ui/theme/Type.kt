@@ -21,17 +21,17 @@ private fun unbounded(weight: Int) = Font(
     variationSettings = FontVariation.Settings(FontVariation.weight(weight)),
 )
 
-private fun doto(weight: Int) = Font(
-    resId = R.font.doto_variable,
+private fun handjet(weight: Int) = Font(
+    resId = R.font.handjet_variable,
     weight = FontWeight(weight),
     variationSettings = FontVariation.Settings(FontVariation.weight(weight)),
 )
 
-val Doto = FontFamily(
-    doto(400),
-    doto(500),
-    doto(700),
-    doto(900),
+val Handjet = FontFamily(
+    handjet(400),
+    handjet(500),
+    handjet(700),
+    handjet(900),
 )
 
 val Manrope = FontFamily(
@@ -154,63 +154,84 @@ val MimoTypography = Typography(
 
 val NothingTypography = Typography(
     displayLarge = MimoTypography.displayLarge.copy(
-        fontFamily = Doto,
+        fontFamily = Handjet,
         fontWeight = FontWeight.Bold,
-        letterSpacing = 1.2.sp,
+        letterSpacing = 0.8.sp,
     ),
     displayMedium = MimoTypography.displayMedium.copy(
-        fontFamily = Doto,
-        fontWeight = FontWeight.Bold,
-        letterSpacing = 1.0.sp,
-    ),
-    displaySmall = MimoTypography.displaySmall.copy(
-        fontFamily = Doto,
-        fontWeight = FontWeight.Bold,
-        letterSpacing = 0.8.sp,
-    ),
-    headlineLarge = MimoTypography.headlineLarge.copy(
-        fontFamily = Doto,
-        fontWeight = FontWeight.Bold,
-        letterSpacing = 0.8.sp,
-    ),
-    headlineMedium = MimoTypography.headlineMedium.copy(
-        fontFamily = Doto,
+        fontFamily = Handjet,
         fontWeight = FontWeight.Bold,
         letterSpacing = 0.6.sp,
     ),
+    displaySmall = MimoTypography.displaySmall.copy(
+        fontFamily = Handjet,
+        fontWeight = FontWeight.Bold,
+        letterSpacing = 0.5.sp,
+    ),
+    headlineLarge = MimoTypography.headlineLarge.copy(
+        fontFamily = Handjet,
+        fontWeight = FontWeight.Bold,
+        letterSpacing = 0.5.sp,
+    ),
+    headlineMedium = MimoTypography.headlineMedium.copy(
+        fontFamily = Handjet,
+        fontWeight = FontWeight.Bold,
+        letterSpacing = 0.4.sp,
+    ),
     headlineSmall = MimoTypography.headlineSmall.copy(
-        fontFamily = Doto,
-        fontWeight = FontWeight.Bold,
-        letterSpacing = 0.4.sp,
-    ),
-    titleLarge = MimoTypography.titleLarge.copy(
-        fontFamily = Doto,
-        fontWeight = FontWeight.Bold,
-        letterSpacing = 0.4.sp,
-    ),
-    titleMedium = MimoTypography.titleMedium.copy(
-        fontFamily = Doto,
+        fontFamily = Handjet,
         fontWeight = FontWeight.Bold,
         letterSpacing = 0.3.sp,
     ),
+    titleLarge = MimoTypography.titleLarge.copy(
+        fontFamily = Handjet,
+        fontWeight = FontWeight.Bold,
+        letterSpacing = 0.3.sp,
+    ),
+    titleMedium = MimoTypography.titleMedium.copy(
+        fontFamily = Handjet,
+        fontWeight = FontWeight.SemiBold,
+        letterSpacing = 0.3.sp,
+    ),
     titleSmall = MimoTypography.titleSmall.copy(
-        fontFamily = FontFamily.Monospace,
+        fontFamily = Handjet,
         fontWeight = FontWeight.SemiBold,
         letterSpacing = 0.2.sp,
     ),
-    bodyLarge = MimoTypography.bodyLarge,
-    bodyMedium = MimoTypography.bodyMedium,
-    bodySmall = MimoTypography.bodySmall,
+    bodyLarge = MimoTypography.bodyLarge.copy(
+        fontFamily = Handjet,
+        fontSize = 17.sp,
+        lineHeight = 25.sp,
+        letterSpacing = 0.2.sp,
+    ),
+    bodyMedium = MimoTypography.bodyMedium.copy(
+        fontFamily = Handjet,
+        fontSize = 15.sp,
+        lineHeight = 22.sp,
+        letterSpacing = 0.2.sp,
+    ),
+    bodySmall = MimoTypography.bodySmall.copy(
+        fontFamily = Handjet,
+        fontSize = 13.sp,
+        lineHeight = 18.sp,
+        letterSpacing = 0.2.sp,
+    ),
     labelLarge = MimoTypography.labelLarge.copy(
-        fontFamily = FontFamily.Monospace,
-        letterSpacing = 0.4.sp,
+        fontFamily = Handjet,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 14.sp,
+        letterSpacing = 0.3.sp,
     ),
     labelMedium = MimoTypography.labelMedium.copy(
-        fontFamily = FontFamily.Monospace,
-        letterSpacing = 0.4.sp,
+        fontFamily = Handjet,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 13.sp,
+        letterSpacing = 0.3.sp,
     ),
     labelSmall = MimoTypography.labelSmall.copy(
-        fontFamily = FontFamily.Monospace,
-        letterSpacing = 0.5.sp,
+        fontFamily = Handjet,
+        fontWeight = FontWeight.Medium,
+        fontSize = 12.sp,
+        letterSpacing = 0.3.sp,
     ),
 )

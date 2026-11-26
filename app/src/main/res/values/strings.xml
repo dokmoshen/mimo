@@ -287,7 +287,7 @@
     <string name="settings_about">О приложении</string>
     <string name="about_body">Mimo — локальные заметки без аккаунта и облака. Всё хранится только на устройстве.</string>
     <string name="about_version">Версия %1$s</string>
-    <string name="about_fonts">Шрифты Manrope, Unbounded и Doto используются по лицензии SIL Open Font License.</string>
+    <string name="about_fonts">Шрифты Manrope, Unbounded и Handjet используются по лицензии SIL Open Font License.</string>
     <string name="license_copyright">mimo — Copyright (C) 2026 Mimo contributors</string>
     <string name="license_summary">GPL-3.0 · без гарантии</string>
     <string name="license_open">Открыть текст лицензии</string>
