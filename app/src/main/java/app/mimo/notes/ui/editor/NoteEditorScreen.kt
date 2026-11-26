@@ -231,7 +231,7 @@ fun NoteEditorScreen(
         BiometricAuth.canAuthenticate(context) || hasNotePin
     }
     val background by animateColorAsState(
-        NoteColors.background(viewModel.colorId),
+        NoteColors.editorBackground(viewModel.colorId),
         spring(stiffness = Spring.StiffnessMediumLow),
         label = "editorBackground",
     )

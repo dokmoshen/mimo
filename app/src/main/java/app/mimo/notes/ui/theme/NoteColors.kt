@@ -50,17 +50,26 @@ object NoteColors {
     )
 
     @Composable
-    fun background(id: Int): Color {
+    private fun baseBackground(id: Int): Color {
         val dark = LocalMimoDark.current
-        val base = if (LocalDesignLanguage.current == DesignLanguage.NOTHING) {
+        return if (LocalDesignLanguage.current == DesignLanguage.NOTHING) {
             val palette = if (dark) nothingDark else nothingLight
             palette[id.mod(palette.size)]
         } else {
             val color = byId(id)
             if (dark) color.dark else color.light
         }
+    }
+
+    @Composable
+    fun background(id: Int): Color {
+        val base = baseBackground(id)
         return if (LocalInterfaceBlur.current) base.copy(alpha = 0.78f) else base
     }
+
+    /** The note editor keeps an opaque paper surface even when the UI is glassy. */
+    @Composable
+    fun editorBackground(id: Int): Color = baseBackground(id)
 
     @Composable
     fun content(): Color = when {

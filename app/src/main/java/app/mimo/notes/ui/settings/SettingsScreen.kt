@@ -323,7 +323,9 @@ fun SettingsScreen(
                                 onClick = { scope.launch { preferences.setThemeMode(ThemeMode.DARK) } },
                             )
                         }
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+                            settings.designLanguage != DesignLanguage.NOTHING
+                        ) {
                             SettingsDivider()
                             SwitchRow(
                                 icon = Icons.Rounded.Palette,
@@ -359,6 +361,9 @@ fun SettingsScreen(
                                         if (enabled) DesignLanguage.NOTHING
                                         else DesignLanguage.EXPRESSIVE
                                     )
+                                    if (enabled) {
+                                        preferences.setDynamicColor(false)
+                                    }
                                 }
                             },
                         )
