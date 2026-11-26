@@ -35,6 +35,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -49,6 +50,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalFocusManager
@@ -62,6 +64,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.mimo.notes.ui.LocalMimoHaptics
 import app.mimo.notes.preferences.DesignLanguage
+import app.mimo.notes.ui.theme.LocalAmbientTint
 import app.mimo.notes.ui.theme.LocalDesignLanguage
 import app.mimo.notes.ui.theme.LocalInterfaceBlur
 import app.mimo.notes.ui.theme.LocalMimoDark
@@ -75,6 +78,22 @@ fun backdropBottomColor(): Color =
     if (LocalMimoDark.current) Color(0xFF0E110F) else Color(0xFFF4EEE3)
 
 @Composable
+fun AmbientMimoBackdrop(
+    target: Color?,
+    modifier: Modifier = Modifier,
+    content: @Composable BoxScope.() -> Unit,
+) {
+    val tint by animateColorAsState(
+        targetValue = target ?: Color.Transparent,
+        animationSpec = tween(1700, easing = FastOutSlowInEasing),
+        label = "ambientBackdropTint",
+    )
+    CompositionLocalProvider(LocalAmbientTint provides tint) {
+        MimoBackdrop(modifier = modifier, content = content)
+    }
+}
+
+@Composable
 fun MimoBackdrop(
     modifier: Modifier = Modifier,
     content: @Composable BoxScope.() -> Unit,
@@ -83,6 +102,8 @@ fun MimoBackdrop(
     val scheme = MaterialTheme.colorScheme
     val design = LocalDesignLanguage.current
     val blur = LocalInterfaceBlur.current
+    val ambient = LocalAmbientTint.current
+    val ambientLight = ambient?.luminance() ?: 0.5f
     val top = if (design == DesignLanguage.NOTHING) scheme.background else backdropTopColor()
     val bottom = if (design == DesignLanguage.NOTHING) scheme.background else backdropBottomColor()
     val glowPrimary = scheme.primary.copy(alpha = if (dark) 0.16f else 0.10f)
@@ -93,7 +114,10 @@ fun MimoBackdrop(
             drawRect(Brush.verticalGradient(listOf(top, bottom)))
             if (design == DesignLanguage.NOTHING) {
                 val step = 26.dp.toPx()
-                val dot = scheme.onBackground.copy(alpha = if (dark) 0.10f else 0.07f)
+                val dot = scheme.onBackground.copy(
+                    alpha = if (dark) 0.085f + 0.035f * ambientLight
+                    else 0.055f + 0.040f * (1f - ambientLight),
+                )
                 var x = step / 2f
                 while (x < size.width) {
                     var y = step / 2f
@@ -131,6 +155,18 @@ fun MimoBackdrop(
                     radius = size.width * 0.85f,
                     center = Offset(size.width * 0.16f, size.height * 0.92f),
                 )
+                if (ambient != null) {
+                    val ambientGlow = ambient.copy(alpha = if (dark) 0.15f else 0.085f)
+                    drawCircle(
+                        brush = Brush.radialGradient(
+                            colors = listOf(ambientGlow, Color.Transparent),
+                            center = Offset(size.width * 0.5f, size.height * 0.76f),
+                            radius = size.width * 1.15f,
+                        ),
+                        radius = size.width * 1.15f,
+                        center = Offset(size.width * 0.5f, size.height * 0.76f),
+                    )
+                }
             }
         }
         if (blur) {

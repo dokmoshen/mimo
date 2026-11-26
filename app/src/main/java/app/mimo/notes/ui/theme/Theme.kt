@@ -32,6 +32,9 @@ val LocalMimoDark = staticCompositionLocalOf { false }
 val LocalDesignLanguage = staticCompositionLocalOf { DesignLanguage.EXPRESSIVE }
 val LocalInterfaceBlur = staticCompositionLocalOf { true }
 
+/** The dominant paper color of the visible notes, used for ambient background light. */
+val LocalAmbientTint = staticCompositionLocalOf<Color?> { null }
+
 val MimoShapes = Shapes(
     extraSmall = androidx.compose.foundation.shape.RoundedCornerShape(8.dp),
     small = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),

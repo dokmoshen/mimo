@@ -14,6 +14,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.biometric.BiometricPrompt
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.ExperimentalSharedTransitionApi
@@ -24,6 +25,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.Animatable
@@ -232,6 +234,16 @@ fun NoteEditorScreen(
         spring(stiffness = Spring.StiffnessMediumLow),
         label = "editorBackground",
     )
+    val colorRippleTint = NoteColors.editorBackground(viewModel.colorId)
+    val colorRipple = remember { Animatable(1f) }
+    var lastColorId by remember { mutableIntStateOf(viewModel.colorId) }
+    LaunchedEffect(viewModel.colorId) {
+        if (viewModel.colorId != lastColorId) {
+            lastColorId = viewModel.colorId
+            colorRipple.snapTo(0f)
+            colorRipple.animateTo(1f, tween(620, easing = FastOutSlowInEasing))
+        }
+    }
     val content = NoteColors.content()
     val muted = NoteColors.mutedContent()
     val bodyFocus = remember { FocusRequester() }
@@ -800,6 +812,16 @@ fun NoteEditorScreen(
                 radius = size.width,
                 center = androidx.compose.ui.geometry.Offset(size.width * 0.85f, size.height * 0.1f),
             )
+        }
+        if (colorRipple.value < 0.999f) {
+            Canvas(Modifier.fillMaxSize()) {
+                val p = colorRipple.value
+                drawCircle(
+                    color = colorRippleTint.copy(alpha = 0.34f * (1f - p)),
+                    radius = size.maxDimension * 0.9f * p,
+                    center = Offset(size.width * 0.5f, size.height * 0.86f),
+                )
+            }
         }
         PaperGrain(Modifier.fillMaxSize())
         Column(Modifier.fillMaxSize()) {
@@ -1411,12 +1433,21 @@ private fun ReaderProgressFooter(
     }
     Column(modifier.fillMaxWidth()) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                text = "%02d / %02d".format(page, pages),
-                style = MaterialTheme.typography.labelSmall,
-                color = muted,
-                letterSpacing = 0.8.sp,
-            )
+            AnimatedContent(
+                targetState = page,
+                transitionSpec = {
+                    (slideInVertically(tween(180)) { it / 2 } + fadeIn(tween(180)))
+                        .togetherWith(slideOutVertically(tween(140)) { -it / 2 } + fadeOut(tween(140)))
+                },
+                label = "readerPageNumber",
+            ) { currentPage ->
+                Text(
+                    text = "%02d / %02d".format(currentPage, pages),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = muted,
+                    letterSpacing = 0.8.sp,
+                )
+            }
             Spacer(Modifier.weight(1f))
             Text(
                 text = "MIMO",
@@ -1498,7 +1529,21 @@ private fun ReaderBody(
         formatEditorialDate(viewModel.noteModifiedAt)
     }
 
-    Column(modifier) {
+    val pageLift = (scrollState.value / with(density) { 180.dp.toPx() }).coerceIn(0f, 1f)
+    Column(
+        modifier.drawWithContent {
+            drawContent()
+            if (pageLift > 0.01f) {
+                drawRect(
+                    brush = androidx.compose.ui.graphics.Brush.verticalGradient(
+                        listOf(Color.Black.copy(alpha = 0.10f * pageLift), Color.Transparent),
+                        startY = 0f,
+                        endY = 26.dp.toPx(),
+                    ),
+                )
+            }
+        },
+    ) {
         if (viewModel.images.isNotEmpty()) {
             ReaderHeroImage(
                 path = viewModel.images.first(),

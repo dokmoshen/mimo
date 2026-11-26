@@ -1,6 +1,12 @@
 package app.mimo.notes.ui.components
 
 import android.media.MediaPlayer
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -58,6 +64,16 @@ fun AudioPlaybackRow(
     var actualDuration by remember(path) { mutableStateOf(durationMs) }
     val exists = remember(path) { File(path).exists() }
     val amplitudes = remember(path) { waveformAmplitudes(path) }
+    val waveTransition = rememberInfiniteTransition(label = "audioWave")
+    val wavePhase = waveTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = (Math.PI * 2).toFloat(),
+        animationSpec = infiniteRepeatable(
+            animation = tween(1300, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart,
+        ),
+        label = "audioWavePhase",
+    )
 
     fun release() {
         runCatching { player?.release() }
@@ -183,8 +199,14 @@ fun AudioPlaybackRow(
                         val step = size.width / bars
                         val barWidth = step * 0.46f
                         val fraction = progress.coerceIn(0f, 1f)
+                        val phase = wavePhase.value
                         amplitudes.forEachIndexed { index, amplitude ->
-                            val height = (size.height * amplitude)
+                            val alive = if (isPlaying) {
+                                0.88f + 0.12f * sin(phase + index * 0.9f)
+                            } else {
+                                1f
+                            }
+                            val height = (size.height * amplitude * alive)
                                 .coerceAtLeast(2.dp.toPx())
                             val x = step * index + step / 2f
                             val played = (index + 0.5f) / bars <= fraction
@@ -197,9 +219,14 @@ fun AudioPlaybackRow(
                             )
                         }
                         if (fraction > 0f) {
+                            val pulse = if (isPlaying) {
+                                1f + 0.16f * sin(wavePhase.value * 2f)
+                            } else {
+                                1f
+                            }
                             drawCircle(
                                 color = tint,
-                                radius = 2.4.dp.toPx(),
+                                radius = 2.4.dp.toPx() * pulse,
                                 center = Offset(size.width * fraction, size.height / 2f),
                             )
                         }

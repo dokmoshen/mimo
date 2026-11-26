@@ -1,6 +1,13 @@
 package app.mimo.notes.ui.editor
 
 import app.mimo.notes.ui.components.MimoIcons
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -23,8 +30,11 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -67,6 +77,10 @@ fun ProofreadDialog(
         title = { Text(stringResource(R.string.proofread_title)) },
         text = {
             Column {
+                if (spellingLoading || modelLoading || aiLoading) {
+                    InkScanner()
+                    Spacer(Modifier.height(12.dp))
+                }
                 if (plan.count > 0) {
                     Text(
                         stringResource(R.string.proofread_found, plan.count),
@@ -268,4 +282,44 @@ fun ProofreadDialog(
             TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
         },
     )
+}
+
+@Composable
+private fun InkScanner() {
+    val transition = rememberInfiniteTransition(label = "proofreadScan")
+    val phase by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1100, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart,
+        ),
+        label = "proofreadScanPhase",
+    )
+    val color = MaterialTheme.colorScheme.primary
+    val track = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
+    Canvas(Modifier.fillMaxWidth().height(20.dp)) {
+        val centerY = size.height / 2f
+        drawLine(track, Offset(0f, centerY), Offset(size.width, centerY), 1.dp.toPx())
+        val step = 13.dp.toPx()
+        var x = step / 2f
+        while (x < size.width) {
+            val wave = 1f - kotlin.math.abs(x / size.width - phase)
+            val r = (1.2f + 1.8f * wave.coerceIn(0f, 1f)).dp.toPx()
+            drawCircle(
+                color = color.copy(alpha = 0.25f + 0.55f * wave.coerceIn(0f, 1f)),
+                radius = r,
+                center = Offset(x, centerY),
+            )
+            x += step
+        }
+        val scanX = size.width * phase
+        drawLine(
+            color = color,
+            start = Offset(scanX, 2.dp.toPx()),
+            end = Offset(scanX, size.height - 2.dp.toPx()),
+            strokeWidth = 2.dp.toPx(),
+            cap = StrokeCap.Round,
+        )
+    }
 }

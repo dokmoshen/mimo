@@ -62,6 +62,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -97,7 +98,9 @@ import app.mimo.notes.preferences.MimoSettings
 import app.mimo.notes.ui.LocalMimoHaptics
 import app.mimo.notes.ui.components.CircleActionButton
 import app.mimo.notes.ui.components.ColorPickerSheet
+import app.mimo.notes.ui.components.AmbientMimoBackdrop
 import app.mimo.notes.ui.components.ConfirmDialog
+import app.mimo.notes.ui.components.LocalDockGravity
 import app.mimo.notes.ui.components.EmptyState
 import app.mimo.notes.ui.components.InlineSearchField
 import app.mimo.notes.ui.components.backdropBottomColor
@@ -115,6 +118,7 @@ import app.mimo.notes.ui.components.TransparentScreenHeader
 import app.mimo.notes.ui.components.TransparentTopFog
 import app.mimo.notes.ui.components.transparentHeaderHeight
 import app.mimo.notes.ui.theme.LabelColors
+import app.mimo.notes.ui.theme.NoteColors
 import app.mimo.notes.ui.util.formatNoteCount
 import app.mimo.notes.ui.util.shareNote
 import app.mimo.notes.ui.util.shareNotes
@@ -168,13 +172,17 @@ fun NotesScreen(
     var headerCollapsed by rememberSaveable { mutableStateOf(false) }
     var scrollDownAccumulator by remember { mutableFloatStateOf(0f) }
     var scrollUpAccumulator by remember { mutableFloatStateOf(0f) }
+    var ambientScroll by remember { mutableFloatStateOf(0f) }
+    var ambientIndex by remember { mutableIntStateOf(0) }
+    var ambientCount by remember { mutableIntStateOf(0) }
+    val dockGravity = LocalDockGravity.current
     val density = LocalDensity.current
     val downThresholdPx = with(density) { 22.dp.toPx() }
     val upThresholdPx = with(density) { 8.dp.toPx() }
     val fogColor = backdropBottomColor()
     val statusBarTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
 
-    val headerScrollConnection = remember(downThresholdPx, upThresholdPx) {
+    val headerScrollConnection = remember(dockGravity, downThresholdPx, upThresholdPx) {
         object : NestedScrollConnection {
             override fun onPostScroll(
                 consumed: Offset,
@@ -183,6 +191,12 @@ fun NotesScreen(
             ): Offset {
                 if (source != NestedScrollSource.UserInput) return Offset.Zero
                 val dy = consumed.y
+                dockGravity?.onScroll(dy)
+                if (dy != 0f && ambientCount > 0) {
+                    ambientScroll += -dy
+                    val next = (ambientScroll / 1100f).toInt().mod(ambientCount)
+                    if (next != ambientIndex) ambientIndex = next
+                }
                 if (dy < 0f) {
                     scrollUpAccumulator = 0f
                     scrollDownAccumulator += -dy
@@ -227,6 +241,13 @@ fun NotesScreen(
     val others = if (collection == NotesCollection.TRASH) source else source.filter { !it.isPinned }
     val visibleNotes = pinned + others
     val visibleIds = visibleNotes.map { it.id }
+    val ambientPalette = visibleNotes.take(8).map { NoteColors.ambient(it.colorId) }
+    LaunchedEffect(ambientPalette.size) {
+        ambientCount = ambientPalette.size
+        if (ambientIndex >= ambientCount) ambientIndex = 0
+    }
+    val ambientTarget = ambientPalette.getOrNull(ambientIndex)
+        ?: MaterialTheme.colorScheme.background
     val allById = remember(notes, trashed) { (notes + trashed).associateBy { it.id } }
     val selectionNotes = selection.mapNotNull { allById[it] }
 
@@ -254,6 +275,8 @@ fun NotesScreen(
         headerCollapsed = false
         scrollDownAccumulator = 0f
         scrollUpAccumulator = 0f
+        ambientScroll = 0f
+        ambientIndex = 0
     }
 
     fun authenticateThen(noteIds: Set<Long>, lock: Boolean) {
@@ -452,7 +475,7 @@ fun NotesScreen(
         }
     }
 
-    MimoBackdrop {
+    AmbientMimoBackdrop(target = ambientTarget) {
         Box(Modifier.fillMaxSize()) {
             bodyContent(Modifier.fillMaxSize())
             TransparentTopFog(headerSpace, Modifier.align(Alignment.TopCenter))

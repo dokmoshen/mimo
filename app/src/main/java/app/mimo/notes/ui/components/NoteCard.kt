@@ -60,7 +60,11 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
@@ -131,7 +135,12 @@ fun NoteCard(
     val elasticState = rememberElasticDragState()
     val interactionSource = remember { MutableInteractionSource() }
     val pressed by interactionSource.collectIsPressedAsState()
-    val background = NoteColors.background(note.colorId)
+    val paperColor = NoteColors.background(note.colorId)
+    val background by animateColorAsState(
+        targetValue = paperColor,
+        animationSpec = tween(420, easing = FastOutSlowInEasing),
+        label = "notePaperColor",
+    )
     val content = NoteColors.content()
     val muted = NoteColors.mutedContent()
     val highlightReveal = remember { Animatable(0f) }
@@ -217,13 +226,18 @@ fun NoteCard(
     var vanishAction by remember { mutableStateOf<NoteCardAction?>(null) }
     val vanish by animateFloatAsState(
         targetValue = if (vanishAction != null) 1f else 0f,
-        animationSpec = tween(durationMillis = 180, easing = FastOutSlowInEasing),
+        animationSpec = tween(durationMillis = 270, easing = FastOutSlowInEasing),
         label = "noteVanish",
     )
+    val density = LocalDensity.current
+    val configuration = LocalConfiguration.current
+    val screenWidthPx = with(density) { configuration.screenWidthDp.dp.toPx() }
+    val screenHeightPx = with(density) { configuration.screenHeightDp.dp.toPx() }
+    var cardCenter by remember { mutableStateOf(Offset.Zero) }
     LaunchedEffect(vanishAction) {
         val action = vanishAction ?: return@LaunchedEffect
         haptics.longPress()
-        delay(170)
+        delay(250)
         onAction(action)
         vanishAction = null
     }
@@ -233,21 +247,40 @@ fun NoteCard(
             .pressScale(interactionSource)
             .elasticVisual(elasticState, maxDrag = 48.dp, translationFactor = 0.30f, stretchAmount = 0.075f)
             .zIndex(if (elasticState.isDragging) 1f else 0f)
+            .onGloballyPositioned { coordinates ->
+                val position = coordinates.positionInRoot()
+                cardCenter = Offset(
+                    position.x + coordinates.size.width / 2f,
+                    position.y + coordinates.size.height / 2f,
+                )
+            }
             .graphicsLayer {
                 val dim = if (selectionMode && !selected) 0.82f else 1f
                 val lift = if (selected) 1f else 0f
-                alpha = (1f - 0.88f * vanish) * dim
-                scaleX = 1f - 0.055f * vanish + 0.008f * lift
-                scaleY = 1f - 0.055f * vanish + 0.008f * lift
+                alpha = (1f - 0.9f * vanish) * dim
+                scaleX = 1f - 0.1f * vanish + 0.008f * lift
+                scaleY = 1f - 0.1f * vanish + 0.008f * lift
                 val searchLift = if (!highlightQuery.isNullOrBlank()) {
                     (1f - highlightReveal.value) * 8.dp.toPx()
                 } else {
                     0f
                 }
-                translationY = when (vanishAction) {
-                    NoteCardAction.ARCHIVE, NoteCardAction.UNARCHIVE -> -26.dp.toPx() * vanish + searchLift
-                    NoteCardAction.TRASH, NoteCardAction.DELETE_FOREVER -> 30.dp.toPx() * vanish + searchLift
-                    else -> -2.dp.toPx() * lift + searchLift
+                val restore = vanishAction == NoteCardAction.RESTORE ||
+                    vanishAction == NoteCardAction.UNARCHIVE
+                val targetX = screenWidthPx * 0.5f
+                val targetY = if (restore) -120.dp.toPx() else screenHeightPx - 100.dp.toPx()
+                val dx = (targetX - cardCenter.x) * 0.62f
+                val dy = targetY - cardCenter.y
+                translationX = dx * vanish
+                translationY = if (vanishAction != null) {
+                    dy * vanish + searchLift
+                } else {
+                    -2.dp.toPx() * lift + searchLift
+                }
+                rotationZ = if (vanishAction != null && !restore) {
+                    (if (dx >= 0f) 1f else -1f) * 7f * vanish
+                } else {
+                    0f
                 }
             }
             .fillMaxWidth()
@@ -312,17 +345,31 @@ fun NoteCard(
                     .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.09f))
             )
         }
-        if (!note.isLocked && note.labels.isNotEmpty()) {
-            val spineColors = note.labels.take(2).map { LabelColors.spine(it.colorId) }
-            Canvas(Modifier.matchParentSize()) {
-                val width = (if (nothing) 3.dp else 5.dp).toPx()
-                if (spineColors.size == 1) {
-                    drawRect(spineColors.first(), size = Size(width, size.height))
-                } else {
-                    drawRect(
-                        brush = Brush.verticalGradient(spineColors),
-                        size = Size(width, size.height),
-                    )
+        if (!note.isLocked) {
+            val currentSpine = note.labels.take(2).map { LabelColors.spine(it.colorId) }
+            var lastSpine by remember { mutableStateOf(currentSpine) }
+            LaunchedEffect(currentSpine) {
+                if (currentSpine.isNotEmpty()) lastSpine = currentSpine
+            }
+            val spineProgress by animateFloatAsState(
+                targetValue = if (currentSpine.isNotEmpty()) 1f else 0f,
+                animationSpec = spring(
+                    dampingRatio = 0.82f,
+                    stiffness = Spring.StiffnessMediumLow,
+                ),
+                label = "labelSpine",
+            )
+            if (lastSpine.isNotEmpty() && spineProgress > 0.01f) {
+                Canvas(Modifier.matchParentSize()) {
+                    val width = (if (nothing) 3.dp else 5.dp).toPx() * spineProgress
+                    if (lastSpine.size == 1) {
+                        drawRect(lastSpine.first(), size = Size(width, size.height))
+                    } else {
+                        drawRect(
+                            brush = Brush.verticalGradient(lastSpine),
+                            size = Size(width, size.height),
+                        )
+                    }
                 }
             }
         }

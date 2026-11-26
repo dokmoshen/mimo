@@ -71,6 +71,10 @@ object NoteColors {
     @Composable
     fun editorBackground(id: Int): Color = baseBackground(id)
 
+    /** Opaque paper color for ambient background lighting behind the notes grid. */
+    @Composable
+    fun ambient(id: Int): Color = baseBackground(id)
+
     @Composable
     fun content(): Color = when {
         LocalDesignLanguage.current == DesignLanguage.NOTHING && LocalMimoDark.current ->

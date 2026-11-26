@@ -53,7 +53,9 @@ import app.mimo.notes.ui.components.AnimatedMimoMark
 import app.mimo.notes.ui.components.MimoLogo
 import app.mimo.notes.ui.components.FloatingPanelMode
 import app.mimo.notes.ui.components.FloatingSurfaceHost
+import app.mimo.notes.ui.components.DockGravityState
 import app.mimo.notes.ui.components.GlassBackdrop
+import app.mimo.notes.ui.components.LocalDockGravity
 import app.mimo.notes.ui.components.LocalGlassRoot
 import app.mimo.notes.ui.components.captureGlassBackdrop
 import app.mimo.notes.ui.components.QuickCaptureOption
@@ -149,6 +151,7 @@ fun MimoRoot(
         var quickCaptureOpen by remember { mutableStateOf(false) }
         val glassRoot = LocalView.current.rootView
         var glassBackdrop by remember { mutableStateOf<GlassBackdrop?>(null) }
+        val dockGravity = remember(scope) { DockGravityState(scope) }
 
         fun refreshBackdrop() {
             glassBackdrop = captureGlassBackdrop(glassRoot)
@@ -277,6 +280,7 @@ fun MimoRoot(
             CompositionLocalProvider(
                 LocalSharedTransitionScope provides this,
                 LocalGlassRoot provides glassRoot,
+                LocalDockGravity provides dockGravity,
                 LocalNoteTransitionState provides NoteTransitionState(
                     noteId = transitionNoteId,
                     editorVisible = editorVisible,

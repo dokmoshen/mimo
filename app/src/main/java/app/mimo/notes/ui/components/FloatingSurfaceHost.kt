@@ -27,6 +27,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -64,6 +65,8 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.IntOffset
+import kotlin.math.roundToInt
 import app.mimo.notes.R
 import app.mimo.notes.preferences.NoteLayout
 import app.mimo.notes.ui.LocalMimoHaptics
@@ -108,6 +111,15 @@ fun FloatingSurfaceHost(
     var panelScreen by remember { mutableStateOf<Rect?>(null) }
     val screen = panelScreen
     val glassActive = expanded && blurEnabled && backdrop != null && screen != null
+    val gravity = LocalDockGravity.current
+    val dockSink by animateFloatAsState(
+        targetValue = if (mode == FloatingPanelMode.DOCK) gravity?.sink ?: 0f else 0f,
+        animationSpec = spring(
+            dampingRatio = 0.82f,
+            stiffness = Spring.StiffnessMediumLow,
+        ),
+        label = "dockGravitySink",
+    )
     var panelOrigin by remember { mutableFloatStateOf(0.5f) }
     LaunchedEffect(mode) {
         if (mode != FloatingPanelMode.DOCK) {
@@ -199,6 +211,7 @@ fun FloatingSurfaceHost(
                     .navigationBarsPadding()
                     .padding(horizontal = 20.dp)
                     .padding(bottom = 10.dp)
+                    .offset { IntOffset(0, (dockSink * 7.dp.toPx()).roundToInt()) }
                     .width(width)
                     .height(height)
                     .onGloballyPositioned { coordinates ->
@@ -241,7 +254,11 @@ fun FloatingSurfaceHost(
                     1.dp,
                     MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.55f),
                 ),
-                shadowElevation = elevation,
+                shadowElevation = if (mode == FloatingPanelMode.DOCK) {
+                    elevation - (dockSink * 4).dp
+                } else {
+                    elevation
+                },
             ) {
                 Box(
                     modifier = Modifier
