@@ -61,17 +61,22 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import app.mimo.notes.R
 import app.mimo.notes.preferences.NoteLayout
 import app.mimo.notes.ui.LocalMimoHaptics
+import app.mimo.notes.ui.theme.LocalInterfaceBlur
 
 enum class FloatingPanelMode { DOCK, MENU, CAPTURE }
 
@@ -100,12 +105,18 @@ fun FloatingSurfaceHost(
     onTrash: () -> Unit,
     onSettings: () -> Unit,
     onQuickOption: (QuickCaptureOption) -> Unit,
+    backdrop: GlassBackdrop? = null,
 ) {
     BackHandler(enabled = mode != FloatingPanelMode.DOCK) { onDismiss() }
     val haptics = LocalMimoHaptics.current
     val elasticState = rememberElasticDragState()
     val expanded = mode != FloatingPanelMode.DOCK
     val scrimInteraction = remember { MutableInteractionSource() }
+    val windowView = LocalView.current
+    val blurEnabled = LocalInterfaceBlur.current
+    var panelScreen by remember { mutableStateOf<Rect?>(null) }
+    val screen = panelScreen
+    val glassActive = expanded && blurEnabled && backdrop != null && screen != null
 
     Box(Modifier.fillMaxSize()) {
         AnimatedVisibility(
@@ -185,6 +196,17 @@ fun FloatingSurfaceHost(
                     .padding(bottom = 10.dp)
                     .width(width)
                     .height(height)
+                    .onGloballyPositioned { coordinates ->
+                        val location = IntArray(2)
+                        windowView.rootView.getLocationOnScreen(location)
+                        val position = coordinates.positionInRoot()
+                        panelScreen = Rect(
+                            left = location[0] + position.x,
+                            top = location[1] + position.y,
+                            right = location[0] + position.x + coordinates.size.width,
+                            bottom = location[1] + position.y + coordinates.size.height,
+                        )
+                    }
                     .elasticDrag(
                         state = elasticState,
                         axis = if (mode == FloatingPanelMode.DOCK) {
@@ -202,7 +224,7 @@ fun FloatingSurfaceHost(
                         stretchAmount = 0.055f,
                     ),
                 shape = RoundedCornerShape(corner),
-                color = surfaceColor,
+                color = if (glassActive) Color.Transparent else surfaceColor,
                 border = BorderStroke(
                     1.dp,
                     MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.55f),
@@ -214,6 +236,21 @@ fun FloatingSurfaceHost(
                         .fillMaxSize()
                         .clip(RoundedCornerShape(corner)),
                 ) {
+                    val glassTint = MaterialTheme.colorScheme.surfaceContainerHigh
+                    if (glassActive && backdrop != null && screen != null) {
+                        GlassBackdropLayer(
+                            backdrop = backdrop,
+                            panel = screen,
+                            blurRadius = 36.dp,
+                            tint = Brush.verticalGradient(
+                                listOf(
+                                    glassTint.copy(alpha = 0.62f),
+                                    glassTint.copy(alpha = 0.78f),
+                                )
+                            ),
+                            modifier = Modifier.matchParentSize(),
+                        )
+                    }
                     Box(
                         Modifier
                             .fillMaxSize()

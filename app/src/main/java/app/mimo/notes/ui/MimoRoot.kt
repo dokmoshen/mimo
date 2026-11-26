@@ -32,6 +32,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.ViewModelStoreOwner
@@ -52,6 +53,9 @@ import app.mimo.notes.ui.components.AnimatedMimoMark
 import app.mimo.notes.ui.components.MimoLogo
 import app.mimo.notes.ui.components.FloatingPanelMode
 import app.mimo.notes.ui.components.FloatingSurfaceHost
+import app.mimo.notes.ui.components.GlassBackdrop
+import app.mimo.notes.ui.components.LocalGlassRoot
+import app.mimo.notes.ui.components.captureGlassBackdrop
 import app.mimo.notes.ui.components.QuickCaptureOption
 import app.mimo.notes.ui.editor.EditorLaunch
 import app.mimo.notes.ui.editor.NoteEditorScreen
@@ -142,6 +146,17 @@ fun MimoRoot(
 
         var drawerOpen by remember { mutableStateOf(false) }
         var quickCaptureOpen by remember { mutableStateOf(false) }
+        val glassRoot = LocalView.current.rootView
+        var glassBackdrop by remember { mutableStateOf<GlassBackdrop?>(null) }
+
+        fun refreshBackdrop() {
+            glassBackdrop = captureGlassBackdrop(glassRoot)
+        }
+
+        fun toggleQuickCapture() {
+            if (!quickCaptureOpen) refreshBackdrop()
+            quickCaptureOpen = !quickCaptureOpen
+        }
 
         fun closeOverlays() {
             drawerOpen = false
@@ -260,6 +275,7 @@ fun MimoRoot(
         SharedTransitionLayout(Modifier.fillMaxSize()) {
             CompositionLocalProvider(
                 LocalSharedTransitionScope provides this,
+                LocalGlassRoot provides glassRoot,
                 LocalNoteTransitionState provides NoteTransitionState(
                     noteId = transitionNoteId,
                     editorVisible = editorVisible,
@@ -282,7 +298,7 @@ fun MimoRoot(
                         settings = settings,
                         onBack = { },
                         onOpenNote = { mainViewModel.openEditor(it) },
-                        onQuickCapture = { quickCaptureOpen = !quickCaptureOpen },
+                        onQuickCapture = { toggleQuickCapture() },
                         onOpenSettings = { mainViewModel.openTopLevel(Screen.Settings) },
                         onLabelDeleted = { },
                         onMessage = { scope.launch { snackbarHost.showSnackbar(it) } },
@@ -294,7 +310,7 @@ fun MimoRoot(
                         settings = settings,
                         onBack = { mainViewModel.back() },
                         onOpenNote = { mainViewModel.openEditor(it) },
-                        onQuickCapture = { quickCaptureOpen = !quickCaptureOpen },
+                        onQuickCapture = { toggleQuickCapture() },
                         onOpenSettings = { mainViewModel.openTopLevel(Screen.Settings) },
                         onLabelDeleted = { },
                         onMessage = { scope.launch { snackbarHost.showSnackbar(it) } },
@@ -306,7 +322,7 @@ fun MimoRoot(
                         settings = settings,
                         onBack = { mainViewModel.back() },
                         onOpenNote = { mainViewModel.openEditor(it) },
-                        onQuickCapture = { quickCaptureOpen = !quickCaptureOpen },
+                        onQuickCapture = { toggleQuickCapture() },
                         onOpenSettings = { mainViewModel.openTopLevel(Screen.Settings) },
                         onLabelDeleted = { },
                         onMessage = { scope.launch { snackbarHost.showSnackbar(it) } },
@@ -323,7 +339,7 @@ fun MimoRoot(
                                 settings = settings,
                                 onBack = { mainViewModel.back() },
                                         onOpenNote = { mainViewModel.openEditor(it) },
-                                onQuickCapture = { quickCaptureOpen = !quickCaptureOpen },
+                                onQuickCapture = { toggleQuickCapture() },
                         onOpenSettings = { mainViewModel.openTopLevel(Screen.Settings) },
                                 onLabelDeleted = { mainViewModel.back() },
                                 onMessage = { scope.launch { snackbarHost.showSnackbar(it) } },
@@ -369,13 +385,17 @@ fun MimoRoot(
                         drawerOpen = false
                         quickCaptureOpen = false
                     },
+                    backdrop = glassBackdrop,
                     onMenuClick = {
                         quickCaptureOpen = false
+                        if (!drawerOpen) refreshBackdrop()
                         drawerOpen = true
                     },
                     onComposeClick = {
                         drawerOpen = false
-                        quickCaptureOpen = !quickCaptureOpen
+                        val opening = !quickCaptureOpen
+                        if (opening) refreshBackdrop()
+                        quickCaptureOpen = opening
                     },
                     onToggleLayout = {
                         scope.launch {

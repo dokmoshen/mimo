@@ -1,8 +1,5 @@
 package app.mimo.notes.ui.components
 
-import android.graphics.Bitmap
-import android.graphics.Canvas as AndroidCanvas
-import android.view.View
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -34,32 +31,21 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalView
-import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import app.mimo.notes.ui.LocalMimoHaptics
+import app.mimo.notes.ui.theme.LocalInterfaceBlur
 
-private data class MenuBackdrop(
-    val bitmap: Bitmap,
-    val originX: Int,
-    val originY: Int,
-    val scale: Float,
-)
-
-private val LocalMenuBackdrop = staticCompositionLocalOf<MenuBackdrop?> { null }
+private val LocalMenuBackdrop = staticCompositionLocalOf<GlassBackdrop?> { null }
 
 /**
  * Material 3 Expressive menus are split into rounded panels. The frost is a
@@ -74,10 +60,12 @@ fun ExpressiveMenu(
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val appView = LocalView.current
-    var backdrop by remember { mutableStateOf<MenuBackdrop?>(null) }
-    LaunchedEffect(expanded) {
-        if (expanded) {
-            backdrop = captureBackdrop(appView.rootView)
+    val glassRoot = LocalGlassRoot.current ?: appView.rootView
+    val blurEnabled = LocalInterfaceBlur.current
+    var backdrop by remember { mutableStateOf<GlassBackdrop?>(null) }
+    LaunchedEffect(expanded, glassRoot, blurEnabled) {
+        if (expanded && blurEnabled) {
+            backdrop = captureGlassBackdrop(glassRoot)
         } else {
             backdrop = null
         }
@@ -104,6 +92,7 @@ fun ExpressiveMenuGroup(
     val glowPrimary = MaterialTheme.colorScheme.primary
     val glowSecondary = MaterialTheme.colorScheme.secondary
     val backdrop = LocalMenuBackdrop.current
+    val blurEnabled = LocalInterfaceBlur.current
     val popupView = LocalView.current
     var panelScreen by remember { mutableStateOf<Rect?>(null) }
 
@@ -142,26 +131,19 @@ fun ExpressiveMenuGroup(
                     )
                 )
         ) {
-            if (backdrop != null && panelScreen != null) {
-                val screen = panelScreen!!
-                Canvas(
-                    Modifier
-                        .matchParentSize()
-                        .blur(18.dp)
-                ) {
-                    drawBackdrop(backdrop, screen)
-                }
-                Box(
-                    Modifier
-                        .matchParentSize()
-                        .background(
-                            Brush.verticalGradient(
-                                listOf(
-                                    base.copy(alpha = 0.60f),
-                                    base.copy(alpha = 0.72f),
-                                )
-                            )
+            val screen = panelScreen
+            if (blurEnabled && backdrop != null && screen != null) {
+                GlassBackdropLayer(
+                    backdrop = backdrop,
+                    panel = screen,
+                    blurRadius = 30.dp,
+                    tint = Brush.verticalGradient(
+                        listOf(
+                            base.copy(alpha = 0.58f),
+                            base.copy(alpha = 0.70f),
                         )
+                    ),
+                    modifier = Modifier.matchParentSize(),
                 )
             } else {
                 Canvas(Modifier.matchParentSize()) {
@@ -243,45 +225,6 @@ fun ExpressiveMenuItem(
             colors = colors,
         )
     }
-}
-
-private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawBackdrop(
-    backdrop: MenuBackdrop,
-    panel: Rect,
-) {
-    val bitmap = backdrop.bitmap
-    val left = ((panel.left - backdrop.originX) * backdrop.scale).toInt()
-    val top = ((panel.top - backdrop.originY) * backdrop.scale).toInt()
-    val width = (panel.width * backdrop.scale).toInt().coerceAtLeast(1)
-    val height = (panel.height * backdrop.scale).toInt().coerceAtLeast(1)
-    val srcX = left.coerceIn(0, (bitmap.width - 1).coerceAtLeast(0))
-    val srcY = top.coerceIn(0, (bitmap.height - 1).coerceAtLeast(0))
-    val srcWidth = width.coerceAtMost(bitmap.width - srcX).coerceAtLeast(1)
-    val srcHeight = height.coerceAtMost(bitmap.height - srcY).coerceAtLeast(1)
-    drawImage(
-        image = bitmap.asImageBitmap(),
-        srcOffset = IntOffset(srcX, srcY),
-        srcSize = IntSize(srcWidth, srcHeight),
-        dstOffset = IntOffset.Zero,
-        dstSize = IntSize(size.width.toInt(), size.height.toInt()),
-        filterQuality = FilterQuality.High,
-    )
-}
-
-private fun captureBackdrop(root: View): MenuBackdrop? {
-    if (root.width <= 0 || root.height <= 0) return null
-    return runCatching {
-        val scale = 0.18f
-        val width = (root.width * scale).toInt().coerceAtLeast(1)
-        val height = (root.height * scale).toInt().coerceAtLeast(1)
-        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-        val canvas = AndroidCanvas(bitmap)
-        canvas.scale(scale, scale)
-        root.draw(canvas)
-        val location = IntArray(2)
-        root.getLocationOnScreen(location)
-        MenuBackdrop(bitmap, location[0], location[1], scale)
-    }.getOrNull()
 }
 
 private val GroupRadius = 34.dp
