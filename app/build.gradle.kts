@@ -13,8 +13,8 @@ android {
         applicationId = "app.mimo.notes"
         minSdk = 28
         targetSdk = 37
-        versionCode = 13
-        versionName = "1.12"
+        versionCode = 14
+        versionName = "1.12.1"
     }
 
     buildFeatures {
@@ -55,6 +55,10 @@ dependencies {
 
     implementation("androidx.core:core-ktx:1.19.1")
     implementation("androidx.activity:activity-compose:1.13.0")
+    // 1.2.0 ignores predictive-back progress from an input that was already
+    // removed from its dispatcher; 1.1.0 crashed when a popup menu was open.
+    implementation("androidx.navigationevent:navigationevent:1.2.0")
+    implementation("androidx.navigationevent:navigationevent-compose:1.2.0")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.11.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.11.0")
     implementation("androidx.compose.ui:ui")
