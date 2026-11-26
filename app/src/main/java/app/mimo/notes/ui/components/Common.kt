@@ -46,6 +46,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
@@ -65,6 +66,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.mimo.notes.ui.LocalMimoHaptics
+import app.mimo.notes.preferences.DesignLanguage
+import app.mimo.notes.ui.theme.LocalDesignLanguage
+import app.mimo.notes.ui.theme.LocalInterfaceBlur
 import app.mimo.notes.ui.theme.LocalMimoDark
 
 @Composable
@@ -82,41 +86,90 @@ fun MimoBackdrop(
 ) {
     val dark = LocalMimoDark.current
     val scheme = MaterialTheme.colorScheme
-    val top = backdropTopColor()
-    val bottom = backdropBottomColor()
+    val design = LocalDesignLanguage.current
+    val blur = LocalInterfaceBlur.current
+    val top = if (design == DesignLanguage.NOTHING) scheme.background else backdropTopColor()
+    val bottom = if (design == DesignLanguage.NOTHING) scheme.background else backdropBottomColor()
     val glowPrimary = scheme.primary.copy(alpha = if (dark) 0.16f else 0.10f)
     val glowSecondary = scheme.secondary.copy(alpha = if (dark) 0.12f else 0.08f)
     val glowTertiary = scheme.tertiary.copy(alpha = if (dark) 0.12f else 0.07f)
     Box(modifier = modifier.fillMaxSize()) {
         Canvas(Modifier.fillMaxSize()) {
             drawRect(Brush.verticalGradient(listOf(top, bottom)))
-            drawCircle(
-                brush = Brush.radialGradient(
-                    colors = listOf(glowPrimary, Color.Transparent),
-                    center = Offset(size.width * 0.08f, size.height * 0.04f),
+            if (design == DesignLanguage.NOTHING) {
+                val step = 26.dp.toPx()
+                val dot = scheme.onBackground.copy(alpha = if (dark) 0.10f else 0.07f)
+                var x = step / 2f
+                while (x < size.width) {
+                    var y = step / 2f
+                    while (y < size.height) {
+                        drawCircle(dot, radius = 1.1.dp.toPx(), center = Offset(x, y))
+                        y += step
+                    }
+                    x += step
+                }
+            } else {
+                drawCircle(
+                    brush = Brush.radialGradient(
+                        colors = listOf(glowPrimary, Color.Transparent),
+                        center = Offset(size.width * 0.08f, size.height * 0.04f),
+                        radius = size.width * 0.95f,
+                    ),
                     radius = size.width * 0.95f,
-                ),
-                radius = size.width * 0.95f,
-                center = Offset(size.width * 0.08f, size.height * 0.04f),
-            )
-            drawCircle(
-                brush = Brush.radialGradient(
-                    colors = listOf(glowSecondary, Color.Transparent),
-                    center = Offset(size.width * 0.96f, size.height * 0.18f),
+                    center = Offset(size.width * 0.08f, size.height * 0.04f),
+                )
+                drawCircle(
+                    brush = Brush.radialGradient(
+                        colors = listOf(glowSecondary, Color.Transparent),
+                        center = Offset(size.width * 0.96f, size.height * 0.18f),
+                        radius = size.width * 0.75f,
+                    ),
                     radius = size.width * 0.75f,
-                ),
-                radius = size.width * 0.75f,
-                center = Offset(size.width * 0.96f, size.height * 0.18f),
-            )
-            drawCircle(
-                brush = Brush.radialGradient(
-                    colors = listOf(glowTertiary, Color.Transparent),
-                    center = Offset(size.width * 0.16f, size.height * 0.92f),
+                    center = Offset(size.width * 0.96f, size.height * 0.18f),
+                )
+                drawCircle(
+                    brush = Brush.radialGradient(
+                        colors = listOf(glowTertiary, Color.Transparent),
+                        center = Offset(size.width * 0.16f, size.height * 0.92f),
+                        radius = size.width * 0.85f,
+                    ),
                     radius = size.width * 0.85f,
-                ),
-                radius = size.width * 0.85f,
-                center = Offset(size.width * 0.16f, size.height * 0.92f),
-            )
+                    center = Offset(size.width * 0.16f, size.height * 0.92f),
+                )
+            }
+        }
+        if (blur) {
+            Canvas(
+                Modifier
+                    .fillMaxSize()
+                    .blur(42.dp)
+            ) {
+                val radius = size.width * 0.9f
+                drawCircle(
+                    brush = Brush.radialGradient(
+                        colors = listOf(
+                            scheme.primary.copy(alpha = if (dark) 0.22f else 0.14f),
+                            Color.Transparent,
+                        ),
+                        center = Offset(size.width * 0.12f, size.height * 0.12f),
+                        radius = radius,
+                    ),
+                    radius = radius,
+                    center = Offset(size.width * 0.12f, size.height * 0.12f),
+                )
+                drawCircle(
+                    brush = Brush.radialGradient(
+                        colors = listOf(
+                            scheme.secondary.copy(alpha = if (dark) 0.16f else 0.10f),
+                            Color.Transparent,
+                        ),
+                        center = Offset(size.width * 0.92f, size.height * 0.78f),
+                        radius = radius,
+                    ),
+                    radius = radius,
+                    center = Offset(size.width * 0.92f, size.height * 0.78f),
+                )
+            }
         }
         PaperGrain(Modifier.fillMaxSize())
         content()
@@ -241,7 +294,7 @@ fun CircleActionButton(
     contentDescription: String?,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    containerColor: Color = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.92f),
+    containerColor: Color = MaterialTheme.colorScheme.surfaceContainerHigh,
     contentColor: Color = MaterialTheme.colorScheme.onSurface,
     size: Int = 48,
 ) {

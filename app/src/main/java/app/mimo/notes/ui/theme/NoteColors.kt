@@ -4,8 +4,12 @@ import androidx.annotation.StringRes
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
+import app.mimo.notes.preferences.DesignLanguage
 import androidx.compose.ui.unit.dp
 import app.mimo.notes.R
+import app.mimo.notes.ui.theme.LocalDesignLanguage
+import app.mimo.notes.ui.theme.LocalInterfaceBlur
 
 data class NoteColor(
     val id: Int,
@@ -33,23 +37,50 @@ object NoteColors {
 
     fun byId(id: Int): NoteColor = all.getOrElse(id) { all.first() }
 
+    private val nothingLight = listOf(
+        Color(0xFFF4F4F4), Color(0xFFEDEDED), Color(0xFFE6E6E6), Color(0xFFDEDEDE),
+        Color(0xFFF0F0F0), Color(0xFFE9E9E9), Color(0xFFE2E2E2), Color(0xFFDADADA),
+        Color(0xFFF7F7F7), Color(0xFFEFEFEF), Color(0xFFE8E8E8), Color(0xFFE0E0E0),
+    )
+
+    private val nothingDark = listOf(
+        Color(0xFF0A0A0A), Color(0xFF111111), Color(0xFF171717), Color(0xFF1D1D1D),
+        Color(0xFF0D0D0D), Color(0xFF141414), Color(0xFF1A1A1A), Color(0xFF202020),
+        Color(0xFF080808), Color(0xFF101010), Color(0xFF161616), Color(0xFF1C1C1C),
+    )
+
     @Composable
     fun background(id: Int): Color {
-        val color = byId(id)
-        return if (LocalMimoDark.current) color.dark else color.light
+        val dark = LocalMimoDark.current
+        val base = if (LocalDesignLanguage.current == DesignLanguage.NOTHING) {
+            val palette = if (dark) nothingDark else nothingLight
+            palette[id.mod(palette.size)]
+        } else {
+            val color = byId(id)
+            if (dark) color.dark else color.light
+        }
+        return if (LocalInterfaceBlur.current) base.copy(alpha = 0.78f) else base
     }
 
     @Composable
-    fun content(): Color =
-        if (LocalMimoDark.current) Color(0xFFF2EEE5) else Color(0xFF22302A)
+    fun content(): Color = when {
+        LocalDesignLanguage.current == DesignLanguage.NOTHING && LocalMimoDark.current ->
+            Color(0xFFF4F4F4)
+        LocalDesignLanguage.current == DesignLanguage.NOTHING -> Color(0xFF0A0A0A)
+        LocalMimoDark.current -> Color(0xFFF2EEE5)
+        else -> Color(0xFF22302A)
+    }
 
     @Composable
     fun mutedContent(): Color = content().copy(alpha = 0.64f)
 
     @Composable
-    fun cardBorder(): Color =
-        if (LocalMimoDark.current) Color.White.copy(alpha = 0.07f)
-        else Color(0xFF23302A).copy(alpha = 0.06f)
+    fun cardBorder(): Color = when {
+        LocalDesignLanguage.current == DesignLanguage.NOTHING ->
+            content().copy(alpha = 0.14f)
+        LocalMimoDark.current -> Color.White.copy(alpha = 0.07f)
+        else -> Color(0xFF23302A).copy(alpha = 0.06f)
+    }
 }
 
 val NoteCardShape = RoundedCornerShape(
@@ -62,6 +93,21 @@ val NoteCardShape = RoundedCornerShape(
 val NoteEditorShape = RoundedCornerShape(32.dp)
 val DockShape = RoundedCornerShape(34.dp)
 val PanelShape = RoundedCornerShape(30.dp)
+
+@Composable
+fun noteCardShape(): Shape =
+    if (LocalDesignLanguage.current == DesignLanguage.NOTHING) RoundedCornerShape(6.dp)
+    else NoteCardShape
+
+@Composable
+fun dockShape(): Shape =
+    if (LocalDesignLanguage.current == DesignLanguage.NOTHING) RoundedCornerShape(6.dp)
+    else DockShape
+
+@Composable
+fun panelShape(): Shape =
+    if (LocalDesignLanguage.current == DesignLanguage.NOTHING) RoundedCornerShape(8.dp)
+    else PanelShape
 
 data class LabelColor(
     val id: Int,
@@ -89,12 +135,18 @@ object LabelColors {
 
     @Composable
     fun accent(id: Int): Color {
+        if (LocalDesignLanguage.current == DesignLanguage.NOTHING) {
+            return if (LocalMimoDark.current) Color(0xFFFF4D4D) else Color(0xFFD71921)
+        }
         val color = byId(id)
         return if (LocalMimoDark.current) color.accentDark else color.accentLight
     }
 
     @Composable
     fun container(id: Int): Color {
+        if (LocalDesignLanguage.current == DesignLanguage.NOTHING) {
+            return if (LocalMimoDark.current) Color(0xFF1C1C1C) else Color(0xFFE6E6E6)
+        }
         val color = byId(id)
         return if (LocalMimoDark.current) color.containerDark else color.containerLight
     }

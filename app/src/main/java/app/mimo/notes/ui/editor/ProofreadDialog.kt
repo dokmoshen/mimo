@@ -7,13 +7,18 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.AutoAwesome
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -38,6 +43,10 @@ fun ProofreadDialog(
     spellingLoading: Boolean = false,
     modelLoading: Boolean = false,
     modelNote: String? = null,
+    aiAvailable: Boolean = false,
+    aiLoading: Boolean = false,
+    aiError: String? = null,
+    onAiProofread: () -> Unit = {},
     onDismiss: () -> Unit,
     onApply: () -> Unit,
     onSpellingFix: (SpellingIssue, String) -> Unit = { _, _ -> },
@@ -48,6 +57,7 @@ fun ProofreadDialog(
         counts[ProofreadKind.PUNCTUATION]?.let { add("${stringResource(R.string.proofread_punctuation)}: $it") }
         counts[ProofreadKind.CAPITALIZATION]?.let { add("${stringResource(R.string.proofread_capitalization)}: $it") }
         counts[ProofreadKind.TYPOGRAPHY]?.let { add("${stringResource(R.string.proofread_typography)}: $it") }
+        counts[ProofreadKind.AI]?.let { add("${stringResource(R.string.proofread_ai)}: $it") }
     }.joinToString(" · ")
     val hasSpelling = spellingLoading || spellingIssues.isNotEmpty()
 
@@ -142,6 +152,33 @@ fun ProofreadDialog(
                                 }
                             }
                         }
+                    }
+                }
+
+                if (aiAvailable) {
+                    Spacer(Modifier.height(12.dp))
+                    TextButton(
+                        onClick = onAiProofread,
+                        enabled = !aiLoading,
+                    ) {
+                        Icon(
+                            Icons.Rounded.AutoAwesome,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp),
+                        )
+                        Spacer(Modifier.width(6.dp))
+                        Text(
+                            stringResource(
+                                if (aiLoading) R.string.ai_checking else R.string.ai_proofread
+                            ),
+                        )
+                    }
+                    if (aiError != null) {
+                        Text(
+                            aiError,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error,
+                        )
                     }
                 }
 

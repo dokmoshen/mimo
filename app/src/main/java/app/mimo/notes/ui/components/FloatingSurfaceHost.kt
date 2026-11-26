@@ -167,7 +167,7 @@ fun FloatingSurfaceHost(
                 label = "floatingElevation",
             )
             val surfaceColor by animateColorAsState(
-                targetValue = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.97f),
+                targetValue = MaterialTheme.colorScheme.surfaceContainerHigh,
                 animationSpec = tween(240),
                 label = "floatingColor",
             )

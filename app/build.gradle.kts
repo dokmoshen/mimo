@@ -13,8 +13,8 @@ android {
         applicationId = "app.mimo.notes"
         minSdk = 28
         targetSdk = 37
-        versionCode = 8
-        versionName = "1.7"
+        versionCode = 9
+        versionName = "1.8"
     }
 
     buildFeatures {
@@ -76,6 +76,7 @@ dependencies {
 
     implementation("org.jsoup:jsoup:1.18.3")
     implementation("com.microsoft.onnxruntime:onnxruntime-android:1.22.0")
+    implementation("androidx.security:security-crypto:1.1.0")
 
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.json:json:20240303")

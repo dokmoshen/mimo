@@ -44,7 +44,7 @@ import app.mimo.notes.ui.LocalMimoHaptics
 import androidx.compose.ui.unit.dp
 import app.mimo.notes.R
 import app.mimo.notes.preferences.NoteLayout
-import app.mimo.notes.ui.theme.DockShape
+import app.mimo.notes.ui.theme.dockShape
 import androidx.compose.ui.res.stringResource
 
 @Composable
@@ -73,10 +73,11 @@ fun FloatingDock(
         label = "dockLayoutOffset",
     )
 
+    val shape = dockShape()
     Surface(
         modifier = modifier.width(dockWidth),
-        shape = DockShape,
-        color = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.96f),
+        shape = shape,
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
         shadowElevation = 14.dp,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.55f)),
     ) {

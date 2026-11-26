@@ -118,6 +118,8 @@ fun MimoRoot(
         darkTheme = dark,
         dynamicColor = settings.dynamicColor,
         hapticsEnabled = settings.hapticsEnabled,
+        designLanguage = settings.designLanguage,
+        interfaceBlur = settings.interfaceBlur,
     ) {
         val mainViewModel: MainViewModel = viewModel(
             factory = viewModelFactory { initializer { MainViewModel(application) } },

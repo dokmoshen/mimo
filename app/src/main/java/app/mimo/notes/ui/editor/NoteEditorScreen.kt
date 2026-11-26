@@ -160,10 +160,15 @@ import app.mimo.notes.ui.text.InlineFormat
 import app.mimo.notes.ui.text.ListFormat
 import app.mimo.notes.ui.text.LocalSpellChecker
 import app.mimo.notes.ui.text.ModelStatus
+import app.mimo.notes.ai.AiSettingsStore
+import app.mimo.notes.ai.OnlineProofreader
+import app.mimo.notes.ui.text.ProofreadKind
 import app.mimo.notes.ui.text.ProofreadPlan
 import app.mimo.notes.ui.text.PunctuationModel
 import app.mimo.notes.ui.text.SpellingIssue
 import app.mimo.notes.ui.text.applyHeading
+import app.mimo.notes.ui.text.buildEditsBetween
+import app.mimo.notes.ui.text.buildProofreadResult
 import app.mimo.notes.ui.text.applyInlineFormat
 import app.mimo.notes.ui.text.headingScale
 import app.mimo.notes.ui.text.isInlineFormatActive
@@ -181,6 +186,7 @@ import app.mimo.notes.ui.util.formatReminder
 import app.mimo.notes.ui.util.isOverdue
 import app.mimo.notes.ui.util.shareNote
 import app.mimo.notes.util.BiometricAuth
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
@@ -291,6 +297,11 @@ fun NoteEditorScreen(
     var showPhotoOptions by remember { mutableStateOf(false) }
     var showDeleteConfirm by remember { mutableStateOf(false) }
     var showMore by remember { mutableStateOf(false) }
+    val aiStore = remember(context) { AiSettingsStore(context) }
+    var aiConfig by remember { mutableStateOf(aiStore.load()) }
+    var aiLoading by remember { mutableStateOf(false) }
+    var aiError by remember { mutableStateOf<String?>(null) }
+    var showAiConsent by remember { mutableStateOf(false) }
     var proofreadPlan by remember { mutableStateOf<ProofreadPlan?>(null) }
     var spellingIssues by remember { mutableStateOf<List<SpellingIssue>>(emptyList()) }
     var spellingLoading by remember { mutableStateOf(false) }
@@ -513,12 +524,53 @@ fun NoteEditorScreen(
             showMessage(context.getString(R.string.proofread_empty))
             return
         }
+        aiConfig = aiStore.load()
+        aiError = null
         proofreadPlan = ProofreadPlan(listOf(proofreadText(text)))
         spellingIssues = emptyList()
         spellingLoading = true
         modelLoading = true
         modelNote = null
         proofreadRequest++
+    }
+
+    fun runAiProofread() {
+        val config = aiStore.load()
+        aiConfig = config
+        if (!config.isReady) {
+            showMessage(context.getString(R.string.ai_not_configured))
+            return
+        }
+        if (!aiStore.hasConsent(config.provider)) {
+            showAiConsent = true
+            return
+        }
+        val plan = proofreadPlan ?: return
+        aiLoading = true
+        aiError = null
+        scope.launch {
+            try {
+                val corrected = OnlineProofreader.proofread(context, config, plan.corrected)
+                val edits = buildEditsBetween(plan.corrected, corrected, ProofreadKind.AI)
+                if (edits.isEmpty()) {
+                    aiError = context.getString(R.string.ai_no_errors)
+                } else {
+                    val current = proofreadPlan
+                    if (current != null && current.corrected == plan.corrected) {
+                        proofreadPlan = ProofreadPlan(
+                            current.steps + buildProofreadResult(plan.corrected, edits)
+                        )
+                    }
+                }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                aiError = error.message?.takeIf { it.isNotBlank() }
+                    ?: context.getString(R.string.ai_error)
+            } finally {
+                aiLoading = false
+            }
+        }
     }
 
     LaunchedEffect(proofreadRequest) {
@@ -1067,6 +1119,41 @@ fun NoteEditorScreen(
         )
     }
 
+    if (showAiConsent) {
+        AlertDialog(
+            onDismissRequest = { showAiConsent = false },
+            shape = RoundedCornerShape(30.dp),
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            title = { Text(stringResource(R.string.ai_consent_title)) },
+            text = {
+                Text(
+                    stringResource(
+                        R.string.ai_consent_body,
+                        aiConfig.provider.title,
+                        aiConfig.model,
+                    )
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    aiStore.setConsent(aiConfig.provider)
+                    showAiConsent = false
+                    runAiProofread()
+                }) {
+                    Text(
+                        stringResource(R.string.ai_consent_continue),
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showAiConsent = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            },
+        )
+    }
+
     proofreadPlan?.let { plan ->
         ProofreadDialog(
             plan = plan,
@@ -1074,6 +1161,10 @@ fun NoteEditorScreen(
             spellingLoading = spellingLoading,
             modelLoading = modelLoading,
             modelNote = modelNote,
+            aiAvailable = aiConfig.isReady,
+            aiLoading = aiLoading,
+            aiError = aiError,
+            onAiProofread = ::runAiProofread,
             onDismiss = { proofreadPlan = null },
             onApply = {
                 if (viewModel.applyProofread(plan)) {

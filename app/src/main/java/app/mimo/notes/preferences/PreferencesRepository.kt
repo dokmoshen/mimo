@@ -21,6 +21,8 @@ enum class NoteLayout { GRID, LIST }
 
 enum class SortMode { MODIFIED, CREATED, TITLE }
 
+enum class DesignLanguage { EXPRESSIVE, NOTHING }
+
 data class MimoSettings(
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
     val dynamicColor: Boolean = false,
@@ -29,6 +31,8 @@ data class MimoSettings(
     val sortAscending: Boolean = false,
     val moveCheckedToBottom: Boolean = true,
     val hapticsEnabled: Boolean = true,
+    val designLanguage: DesignLanguage = DesignLanguage.EXPRESSIVE,
+    val interfaceBlur: Boolean = true,
     val hasNotePin: Boolean = false,
 )
 
@@ -44,6 +48,8 @@ class PreferencesRepository(private val context: Context) {
         val sortAscending = booleanPreferencesKey("sort_ascending")
         val moveChecked = booleanPreferencesKey("move_checked_to_bottom")
         val hapticsEnabled = booleanPreferencesKey("haptics_enabled")
+        val designLanguage = stringPreferencesKey("design_language")
+        val interfaceBlur = booleanPreferencesKey("interface_blur")
         val notePinSalt = stringPreferencesKey("note_pin_salt")
         val notePinHash = stringPreferencesKey("note_pin_hash")
     }
@@ -68,6 +74,10 @@ class PreferencesRepository(private val context: Context) {
                 sortAscending = prefs[Keys.sortAscending] ?: false,
                 moveCheckedToBottom = prefs[Keys.moveChecked] ?: true,
                 hapticsEnabled = prefs[Keys.hapticsEnabled] ?: true,
+                designLanguage = prefs[Keys.designLanguage]?.let { value ->
+                    DesignLanguage.entries.firstOrNull { it.name == value }
+                } ?: DesignLanguage.EXPRESSIVE,
+                interfaceBlur = prefs[Keys.interfaceBlur] ?: true,
                 hasNotePin = !prefs[Keys.notePinHash].isNullOrBlank(),
             )
         }
@@ -98,6 +108,14 @@ class PreferencesRepository(private val context: Context) {
 
     suspend fun setHapticsEnabled(enabled: Boolean) {
         context.dataStore.edit { it[Keys.hapticsEnabled] = enabled }
+    }
+
+    suspend fun setDesignLanguage(language: DesignLanguage) {
+        context.dataStore.edit { it[Keys.designLanguage] = language.name }
+    }
+
+    suspend fun setInterfaceBlur(enabled: Boolean) {
+        context.dataStore.edit { it[Keys.interfaceBlur] = enabled }
     }
 
     suspend fun setNotePin(pin: String) {

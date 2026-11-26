@@ -8,6 +8,7 @@ enum class ProofreadKind {
     CAPITALIZATION,
     TYPOGRAPHY,
     SPELLING,
+    AI,
 }
 
 data class TextEdit(

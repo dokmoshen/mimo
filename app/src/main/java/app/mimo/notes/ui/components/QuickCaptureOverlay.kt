@@ -48,7 +48,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import app.mimo.notes.R
 import app.mimo.notes.data.NoteType
-import app.mimo.notes.ui.theme.PanelShape
+import app.mimo.notes.ui.theme.panelShape
 
 data class QuickCaptureOption(
     val type: NoteType,
@@ -156,7 +156,7 @@ fun QuickCaptureOverlay(
                 modifier = Modifier
                     .fillMaxWidth()
                     .widthIn(max = 380.dp),
-                shape = PanelShape,
+                shape = panelShape(),
                 color = MaterialTheme.colorScheme.surfaceContainer,
                 shadowElevation = 22.dp,
             ) {

@@ -21,10 +21,13 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
+import app.mimo.notes.preferences.DesignLanguage
 import app.mimo.notes.ui.LocalMimoHaptics
 import app.mimo.notes.ui.MimoHaptics
 
 val LocalMimoDark = staticCompositionLocalOf { false }
+val LocalDesignLanguage = staticCompositionLocalOf { DesignLanguage.EXPRESSIVE }
+val LocalInterfaceBlur = staticCompositionLocalOf { true }
 
 val MimoShapes = Shapes(
     extraSmall = androidx.compose.foundation.shape.RoundedCornerShape(8.dp),
@@ -34,11 +37,31 @@ val MimoShapes = Shapes(
     extraLarge = androidx.compose.foundation.shape.RoundedCornerShape(36.dp),
 )
 
+val NothingShapes = Shapes(
+    extraSmall = androidx.compose.foundation.shape.RoundedCornerShape(2.dp),
+    small = androidx.compose.foundation.shape.RoundedCornerShape(4.dp),
+    medium = androidx.compose.foundation.shape.RoundedCornerShape(6.dp),
+    large = androidx.compose.foundation.shape.RoundedCornerShape(8.dp),
+    extraLarge = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
+)
+
+private fun androidx.compose.material3.ColorScheme.glassSurfaces(): androidx.compose.material3.ColorScheme = copy(
+    surface = surface.copy(alpha = 0.72f),
+    surfaceContainerLowest = surfaceContainerLowest.copy(alpha = 0.62f),
+    surfaceContainerLow = surfaceContainerLow.copy(alpha = 0.70f),
+    surfaceContainer = surfaceContainer.copy(alpha = 0.74f),
+    surfaceContainerHigh = surfaceContainerHigh.copy(alpha = 0.78f),
+    surfaceContainerHighest = surfaceContainerHighest.copy(alpha = 0.82f),
+    surfaceVariant = surfaceVariant.copy(alpha = 0.68f),
+)
+
 @Composable
 fun MimoTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     dynamicColor: Boolean = false,
     hapticsEnabled: Boolean = true,
+    designLanguage: DesignLanguage = DesignLanguage.EXPRESSIVE,
+    interfaceBlur: Boolean = true,
     content: @Composable () -> Unit,
 ) {
     val context = LocalContext.current
@@ -46,11 +69,21 @@ fun MimoTheme(
     val haptics = remember(hapticFeedback, hapticsEnabled) {
         MimoHaptics(hapticFeedback, hapticsEnabled)
     }
-    val colorScheme = when {
+    val baseScheme = when {
+        designLanguage == DesignLanguage.NOTHING ->
+            if (darkTheme) NothingDarkColorScheme else NothingLightColorScheme
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S ->
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         darkTheme -> MimoDarkColorScheme
         else -> MimoLightColorScheme
+    }
+    val colorScheme = if (interfaceBlur) baseScheme.glassSurfaces() else baseScheme
+    val typography = if (designLanguage == DesignLanguage.NOTHING) NothingTypography else MimoTypography
+    val shapes = if (designLanguage == DesignLanguage.NOTHING) NothingShapes else MimoShapes
+    val motion = if (designLanguage == DesignLanguage.NOTHING) {
+        MotionScheme.standard()
+    } else {
+        MotionScheme.expressive()
     }
     val view = LocalView.current
     if (!view.isInEditMode) {
@@ -65,16 +98,18 @@ fun MimoTheme(
     CompositionLocalProvider(
         LocalMimoDark provides darkTheme,
         LocalMimoHaptics provides haptics,
+        LocalDesignLanguage provides designLanguage,
+        LocalInterfaceBlur provides interfaceBlur,
     ) {
         MaterialExpressiveTheme(
             colorScheme = colorScheme,
-            motionScheme = MotionScheme.expressive(),
-            shapes = MimoShapes,
-            typography = MimoTypography,
+            motionScheme = motion,
+            shapes = shapes,
+            typography = typography,
         ) {
             CompositionLocalProvider(
                 LocalContentColor provides colorScheme.onBackground,
-                LocalTextStyle provides MimoTypography.bodyLarge,
+                LocalTextStyle provides typography.bodyLarge,
                 content = content,
             )
         }

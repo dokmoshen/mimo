@@ -219,3 +219,81 @@ private fun commonSuffix(first: String, second: String, prefix: Int): Int {
     }
     return suffix
 }
+
+/**
+ * Turns a rewritten text into a small list of edits. Unchanged regions keep
+ * their rich-text spans; changed regions are replaced as a whole.
+ */
+fun buildEditsBetween(
+    original: String,
+    corrected: String,
+    kind: ProofreadKind,
+): List<TextEdit> {
+    if (original == corrected) return emptyList()
+    val first = tokenize(original)
+    val second = tokenize(corrected)
+    if (first.size > MAX_DIFF_TOKENS || second.size > MAX_DIFF_TOKENS) {
+        val prefix = commonPrefix(original, corrected)
+        val suffix = commonSuffix(original, corrected, prefix)
+        return listOf(
+            TextEdit(
+                start = prefix,
+                end = original.length - suffix,
+                replacement = corrected.substring(prefix, corrected.length - suffix),
+                kind = kind,
+            )
+        )
+    }
+
+    val operations = diffTokens(first, second)
+    val edits = mutableListOf<TextEdit>()
+    var index = 0
+    while (index < operations.size) {
+        if (operations[index].type == OpType.EQUAL) {
+            index++
+            continue
+        }
+        var deleteStart = -1
+        var deleteEnd = -1
+        var insertStart = -1
+        val inserted = StringBuilder()
+        while (index < operations.size && operations[index].type != OpType.EQUAL) {
+            val operation = operations[index]
+            when (operation.type) {
+                OpType.DELETE -> {
+                    val token = operation.token ?: break
+                    if (deleteStart < 0) deleteStart = token.start
+                    deleteEnd = maxOf(deleteEnd, token.end)
+                }
+                OpType.INSERT -> {
+                    val token = operation.token ?: break
+                    if (insertStart < 0) insertStart = token.start
+                    inserted.append(token.text)
+                }
+                OpType.EQUAL -> Unit
+            }
+            index++
+        }
+        val start = if (deleteStart >= 0) {
+            deleteStart
+        } else {
+            insertStart.coerceIn(0, original.length)
+        }
+        val end = if (deleteStart >= 0) {
+            maxOf(deleteEnd, start)
+        } else {
+            start
+        }
+        if (start >= 0) {
+            edits.add(
+                TextEdit(
+                    start = start,
+                    end = end,
+                    replacement = inserted.toString(),
+                    kind = kind,
+                )
+            )
+        }
+    }
+    return edits
+}

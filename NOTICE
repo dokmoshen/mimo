@@ -10,10 +10,11 @@ LICENSE.
 бренд-ресурсы. Форки могут использовать код по условиям GPL, но не
 должны выдавать себя за официальный Mimo.
 
-Шрифты Manrope и Unbounded распространяются по лицензии SIL Open Font
-License 1.1. Тексты лицензий находятся в:
+Шрифты Manrope, Unbounded и Doto распространяются по лицензии SIL Open
+Font License 1.1. Тексты лицензий находятся в:
 - app/src/main/assets/licenses/OFL-Manrope.txt
 - app/src/main/assets/licenses/OFL-Unbounded.txt
+- app/src/main/assets/licenses/OFL-Doto.txt
 - docs/fonts/OFL-Manrope.txt
 - docs/fonts/OFL-Unbounded.txt
 

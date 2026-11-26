@@ -10,6 +10,8 @@ import androidx.compose.ui.graphics.ImageShader
 import androidx.compose.ui.graphics.ShaderBrush
 import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.graphics.asImageBitmap
+import app.mimo.notes.preferences.DesignLanguage
+import app.mimo.notes.ui.theme.LocalDesignLanguage
 import app.mimo.notes.ui.theme.LocalMimoDark
 import kotlin.random.Random
 
@@ -23,6 +25,7 @@ fun PaperGrain(
     modifier: Modifier = Modifier,
     alpha: Float = 0.55f,
 ) {
+    if (LocalDesignLanguage.current == DesignLanguage.NOTHING) return
     val dark = LocalMimoDark.current
     val image = remember(dark) { grainImage(dark) }
     val brush = remember(image) {

@@ -4,10 +4,12 @@ import app.mimo.notes.data.RichSpan
 import app.mimo.notes.ui.text.ProofreadKind
 import app.mimo.notes.ui.text.ProofreadPlan
 import app.mimo.notes.ui.text.TextEdit
+import app.mimo.notes.ui.text.buildEditsBetween
 import app.mimo.notes.ui.text.buildProofreadResult
 import app.mimo.notes.ui.text.proofreadText
 import app.mimo.notes.ui.text.remapSpansThroughEdit
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class ProofreadPlanTest {
@@ -32,6 +34,15 @@ class ProofreadPlanTest {
     }
 
 
+
+    @Test
+    fun buildsEditsForAiRewrite() {
+        val original = "привет как дела"
+        val corrected = "Привет, как дела?"
+        val edits = buildEditsBetween(original, corrected, ProofreadKind.AI)
+        assertTrue(edits.isNotEmpty())
+        assertEquals(corrected, buildProofreadResult(original, edits).corrected)
+    }
 
     @Test
     fun remapsSpanWhenTypingBeforeIt() {

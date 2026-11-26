@@ -1355,7 +1355,7 @@ private fun SelectionActionBar(
     Surface(
         modifier = modifier.widthIn(min = 270.dp),
         shape = CircleShape,
-        color = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.97f),
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
         shadowElevation = 14.dp,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.55f)),
     ) {

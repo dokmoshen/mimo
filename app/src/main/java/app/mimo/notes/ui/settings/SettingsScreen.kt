@@ -26,6 +26,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Alarm
+import androidx.compose.material.icons.rounded.AutoAwesome
+import androidx.compose.material.icons.rounded.BlurOn
 import androidx.compose.material.icons.rounded.BrightnessAuto
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.ChevronRight
@@ -74,6 +76,8 @@ import androidx.compose.ui.unit.sp
 import app.mimo.notes.BuildConfig
 import app.mimo.notes.R
 import app.mimo.notes.importer.KeepImportResult
+import app.mimo.notes.ai.AiSettingsStore
+import app.mimo.notes.preferences.DesignLanguage
 import app.mimo.notes.preferences.MimoSettings
 import app.mimo.notes.preferences.NoteLayout
 import app.mimo.notes.preferences.PreferencesRepository
@@ -344,6 +348,30 @@ fun SettingsScreen(
                                 scope.launch { preferences.setHapticsEnabled(enabled) }
                             },
                         )
+                        SwitchRow(
+                            icon = Icons.Rounded.AutoAwesome,
+                            title = stringResource(R.string.settings_design_nothing),
+                            subtitle = stringResource(R.string.settings_design_nothing_desc),
+                            checked = settings.designLanguage == DesignLanguage.NOTHING,
+                            onCheckedChange = { enabled ->
+                                scope.launch {
+                                    preferences.setDesignLanguage(
+                                        if (enabled) DesignLanguage.NOTHING
+                                        else DesignLanguage.EXPRESSIVE
+                                    )
+                                }
+                            },
+                        )
+                        SettingsDivider()
+                        SwitchRow(
+                            icon = Icons.Rounded.BlurOn,
+                            title = stringResource(R.string.settings_blur),
+                            subtitle = stringResource(R.string.settings_blur_desc),
+                            checked = settings.interfaceBlur,
+                            onCheckedChange = { enabled ->
+                                scope.launch { preferences.setInterfaceBlur(enabled) }
+                            },
+                        )
                         SettingsDivider()
                         SettingRow(
                             icon = if (settings.layout == NoteLayout.GRID) Icons.Rounded.GridView
@@ -516,6 +544,11 @@ fun SettingsScreen(
                             },
                         )
                     }
+                }
+
+                item {
+                    SectionHeader(stringResource(R.string.settings_online_ai))
+                    AiSettingsCard(AiSettingsStore(context))
                 }
 
                 item {

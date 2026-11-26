@@ -95,7 +95,7 @@ import app.mimo.notes.ui.LocalNoteTransitionState
 import app.mimo.notes.ui.LocalSharedTransitionScope
 import app.mimo.notes.ui.NoteTransitionKey
 import app.mimo.notes.ui.theme.LabelColors
-import app.mimo.notes.ui.theme.NoteCardShape
+import app.mimo.notes.ui.theme.noteCardShape
 import app.mimo.notes.ui.theme.NoteColors
 import app.mimo.notes.ui.util.formatDuration
 import app.mimo.notes.ui.util.formatReminder
@@ -184,6 +184,7 @@ fun NoteCard(
         label = "noteStackFan",
     )
     var menuExpanded by remember { mutableStateOf(false) }
+    val shape = noteCardShape()
     val wide = presentation != NoteCardPresentation.GRID
     val titleStyle = if (presentation == NoteCardPresentation.SPOTLIGHT || note.images.isNotEmpty()) {
         MaterialTheme.typography.titleLarge
@@ -280,14 +281,14 @@ fun NoteCard(
             }
             .shadow(
                 elevation = elevation,
-                shape = NoteCardShape,
+                shape = shape,
                 clip = false,
                 ambientColor = content.copy(alpha = 0.24f),
                 spotColor = content.copy(alpha = 0.30f),
             )
-            .clip(NoteCardShape)
+            .clip(shape)
             .background(background)
-            .border(if (selected) 2.dp else 1.dp, borderColor, NoteCardShape)
+            .border(if (selected) 2.dp else 1.dp, borderColor, shape)
             .combinedClickable(
                 interactionSource = interactionSource,
                 indication = LocalIndication.current,
