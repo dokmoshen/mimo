@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="ru" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mimo Browser — интернет без суеты</title>
+  <meta name="description" content="Mimo Browser — тёплый браузер для Android на Material 3 Expressive. Вкладки, закладки, история и загрузки без аккаунта и облака.">
+  <meta name="theme-color" content="#f4eee3">
+  <meta property="og:title" content="Mimo Browser — интернет без суеты">
+  <meta property="og:description" content="Вкладки, закладки, история и загрузки в спокойном интерфейсе с бумажной палитрой. Без аккаунта и облака.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="screenshots/browser-home.jpg">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="fonts/unbounded.ttf" as="font" type="font/ttf" crossorigin>
+  <link rel="preload" href="fonts/manrope.ttf" as="font" type="font/ttf" crossorigin>
+  <link rel="stylesheet" href="style.css">
+  <noscript><style>.reveal{opacity:1;transform:none}</style></noscript>
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('mimo-theme');
+        var dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.dataset.theme = saved || (dark ? 'dark' : 'light');
+      } catch (_) {}
+    })();
+  </script>
+</head>
+<body>
+  <svg class="sprite" aria-hidden="true">
+    <symbol id="i-star" viewBox="0 0 48 48">
+      <path d="M24 7v34M7 24h34M12 12l24 24M36 12 12 36" fill="none" stroke="currentColor" stroke-width="4.4" stroke-linecap="round"/>
+      <circle cx="24" cy="24" r="4.6" fill="currentColor" class="star-dot"/>
+    </symbol>
+    <symbol id="i-globe" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/>
+      <path d="M3 12h18M12 3c3.2 3.1 3.2 14.9 0 18M12 3c-3.2 3.1-3.2 14.9 0 18" fill="none" stroke="currentColor" stroke-width="1.6"/>
+    </symbol>
+    <symbol id="i-tabs" viewBox="0 0 24 24">
+      <path d="M8 4h10a2 2 0 0 1 2 2v10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      <rect x="4" y="8" width="12" height="12" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/>
+    </symbol>
+    <symbol id="i-bookmark" viewBox="0 0 24 24">
+      <path d="M6 4.5h12v16l-6-4-6 4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="i-history" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="1.8"/>
+      <path d="M12 7.5V12l3 2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      <path d="M4 5v4h4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="i-download" viewBox="0 0 24 24">
+      <path d="M12 3v12M7.5 10.5 12 15l4.5-4.5M4 19h16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24">
+      <path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="i-search" viewBox="0 0 24 24">
+      <circle cx="10.5" cy="10.5" r="6" fill="none" stroke="currentColor" stroke-width="1.8"/>
+      <path d="m15 15 5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24">
+      <rect x="5" y="10" width="14" height="10" rx="3" fill="none" stroke="currentColor" stroke-width="1.7"/>
+      <path d="M8 10V8a4 4 0 0 1 8 0v2" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+      <circle cx="12" cy="15" r="1.4" fill="currentColor"/>
+    </symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/>
+      <path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M19.1 4.9l-1.4 1.4M6.3 17.7l-1.4 1.4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24">
+      <path d="M20.3 15.2A8.6 8.6 0 0 1 8.8 3.7 8.7 8.7 0 1 0 20.3 15.2Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="i-palette" viewBox="0 0 24 24">
+      <path d="M12 3a9 9 0 1 0 0 18h1.2a2.2 2.2 0 0 0 0-4.4h-.8a1.8 1.8 0 0 1 0-3.6H16a5 5 0 0 0 0-10z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+      <circle cx="7.8" cy="9" r="1.1" fill="currentColor"/>
+      <circle cx="9.6" cy="5.9" r="1.1" fill="currentColor"/>
+      <circle cx="14.2" cy="5.9" r="1.1" fill="currentColor"/>
+      <circle cx="7.2" cy="13.2" r="1.1" fill="currentColor"/>
+    </symbol>
+    <symbol id="i-close" viewBox="0 0 24 24">
+      <path d="m6 6 12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+    </symbol>
+  </svg>
+
+  <div class="grain" aria-hidden="true"></div>
+
+  <header class="nav" id="nav">
+    <a class="brand" href="browser.html" aria-label="Mimo Browser — на главную">
+      <svg class="brand-mark" viewBox="0 0 48 48" aria-hidden="true"><use href="#i-star"/></svg>
+      <span>mimo</span>
+    </a>
+    <div class="app-switch" role="tablist" aria-label="Приложения Mimo">
+      <a href="index.html" role="tab" aria-selected="false">Заметки</a>
+      <a href="browser.html" class="active" role="tab" aria-selected="true">Браузер</a>
+    </div>
+    <nav class="nav-links" aria-label="Разделы Mimo Browser">
+      <a href="#features">Возможности</a>
+      <a href="#screens">Экраны</a>
+      <a href="#privacy">Приватность</a>
+    </nav>
+    <div class="nav-actions">
+      <button class="icon-btn theme-toggle" id="themeToggle" type="button" aria-label="Переключить тему">
+        <svg class="icon sun-icon"><use href="#i-sun"/></svg>
+        <svg class="icon moon-icon"><use href="#i-moon"/></svg>
+      </button>
+      <a class="btn btn-small btn-primary" href="#download">
+        <svg class="icon"><use href="#i-download"/></svg>
+        <span>APK</span>
+      </a>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero section">
+      <div class="hero-copy reveal">
+        <div class="eyebrow">
+          <span class="dot"></span>
+          Браузер · Material 3 Expressive · Android 9+
+        </div>
+        <h1>Интернет без суеты,<br><span class="accent">в тёплой бумаге</span></h1>
+        <p class="lede">Mimo Browser — это вкладки, закладки, история и загрузки в спокойном интерфейсе. Без аккаунта, облака и бесконечных настроек. Только вы и страницы, которые важны.</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="https://github.com/dokmoshen/mimo-browser/releases/latest/download/mimo-browser.apk">
+            <svg class="icon"><use href="#i-download"/></svg>
+            Скачать APK
+          </a>
+          <a class="btn btn-ghost" href="#screens">
+            Посмотреть экраны
+            <svg class="icon"><use href="#i-arrow"/></svg>
+          </a>
+        </div>
+        <ul class="hero-points" aria-label="Ключевые свойства">
+          <li>Без аккаунта</li>
+          <li>Без облака</li>
+          <li>Всё на устройстве</li>
+        </ul>
+      </div>
+
+      <div class="hero-visual reveal" id="heroVisual">
+        <div class="phone phone-main">
+          <div class="phone-notch"></div>
+          <img src="screenshots/browser-home.jpg" alt="Главный экран Mimo Browser" width="540" height="1200">
+        </div>
+        <div class="float-card float-a">
+          <svg class="mini-star" viewBox="0 0 48 48"><use href="#i-star"/></svg>
+          <div><b>Вкладки</b><span>помнят, где вы были</span></div>
+        </div>
+        <div class="float-card float-b">
+          <span class="pill-dot"></span>
+          <div><b>Поиск или адрес</b><span>одна строка</span></div>
+        </div>
+        <div class="float-card float-c">
+          <span class="wave"></span>
+          <div><b>Три темы</b><span>и характер Nothing</span></div>
+        </div>
+      </div>
+    </section>
+
+    <div class="ticker" aria-hidden="true">
+      <div class="ticker-track">
+        <span>вкладки</span><i></i><span>поиск или адрес</span><i></i><span>закладки</span><i></i><span>история</span><i></i><span>загрузки</span><i></i><span>Material 3 Expressive</span><i></i><span>тёмная тема</span><i></i>
+        <span>вкладки</span><i></i><span>поиск или адрес</span><i></i><span>закладки</span><i></i><span>история</span><i></i><span>загрузки</span><i></i><span>Material 3 Expressive</span><i></i><span>тёмная тема</span><i></i>
+      </div>
+    </div>
+
+    <section class="section" id="features">
+      <div class="section-head reveal">
+        <span class="kicker">Спокойный браузер</span>
+        <h2>Всё нужное<br>под большим пальцем</h2>
+        <p>Плавающий док, живые карточки и адресная строка, которая прячется, когда вы читаете.</p>
+      </div>
+      <div class="features">
+        <article class="feature-card paper-mint reveal">
+          <span class="feature-icon"><svg><use href="#i-tabs"/></svg></span>
+          <h3>Вкладки, которые помнят</h3>
+          <p>Открытые страницы и активная вкладка сохраняются между запусками. Переключайтесь карточками с названием и значком сайта.</p>
+        </article>
+        <article class="feature-card paper-coral reveal">
+          <span class="feature-icon"><svg><use href="#i-search"/></svg></span>
+          <h3>Поиск или адрес</h3>
+          <p>Одна строка понимает и адрес, и запрос. Подсказки берутся из закладок и истории, а поисковик выбирается в настройках.</p>
+        </article>
+        <article class="feature-card paper-lav reveal">
+          <span class="feature-icon"><svg><use href="#i-globe"/></svg></span>
+          <h3>Адресная строка-пилюля</h3>
+          <p>При прокрутке вниз она уступает место странице, при движении вверх возвращается. Прогресс и остановка загрузки — прямо в строке.</p>
+        </article>
+        <article class="feature-card paper-yellow reveal">
+          <span class="feature-icon"><svg><use href="#i-bookmark"/></svg></span>
+          <h3>Закладки и история</h3>
+          <p>Звёздочка сохраняет страницу, а библиотека собирает закладки, историю по дням и загрузки в одном месте.</p>
+        </article>
+        <article class="feature-card paper-peach reveal">
+          <span class="feature-icon"><svg><use href="#i-download"/></svg></span>
+          <h3>Загрузки</h3>
+          <p>Файлы скачиваются в фоне, показывают размер и статус, открываются и отправляются в другие приложения.</p>
+        </article>
+        <article class="feature-card paper-mint reveal">
+          <span class="feature-icon"><svg><use href="#i-history"/></svg></span>
+          <h3>Всё под рукой</h3>
+          <p>Дом с быстрым доступом, недавней историей и большим поиском. Меню раскрывается из нижнего дока одной живой поверхностью.</p>
+        </article>
+        <article class="feature-card paper-coral reveal">
+          <span class="feature-icon"><svg><use href="#i-palette"/></svg></span>
+          <h3>Expressive и Nothing</h3>
+          <p>Тёплая бумага с мягкими формами или монохром с красным акцентом и точечным шрифтом. Плюс светлая, тёмная и системная темы.</p>
+        </article>
+        <article class="feature-card paper-lav reveal">
+          <span class="feature-icon"><svg><use href="#i-lock"/></svg></span>
+          <h3>Тихо и приватно</h3>
+          <p>История, закладки и настройки остаются на устройстве. Ни аккаунта, ни синхронизации, ни телеметрии.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section screens-section" id="screens">
+      <div class="section-head reveal">
+        <span class="kicker">Экраны</span>
+        <h2>Бумага, пружины<br>и большие буквы</h2>
+        <p>Светлая и тёмная темы, карточки вкладок, библиотека, меню и характер Nothing.</p>
+      </div>
+      <div class="screens-grid">
+        <button class="screen-card reveal" data-full="screenshots/browser-home.jpg" data-caption="Главный экран · светлая тема">
+          <img src="screenshots/browser-home.jpg" alt="Главный экран Mimo Browser" loading="lazy">
+          <span>Главный экран</span>
+        </button>
+        <button class="screen-card reveal" data-full="screenshots/browser-page.jpg" data-caption="Страница и адресная строка">
+          <img src="screenshots/browser-page.jpg" alt="Страница в Mimo Browser" loading="lazy">
+          <span>Страница</span>
+        </button>
+        <button class="screen-card reveal" data-full="screenshots/browser-search.jpg" data-caption="Поиск с подсказками">
+          <img src="screenshots/browser-search.jpg" alt="Поиск в Mimo Browser" loading="lazy">
+          <span>Поиск</span>
+        </button>
+        <button class="screen-card reveal" data-full="screenshots/browser-tabs.jpg" data-caption="Карточки вкладок">
+          <img src="screenshots/browser-tabs.jpg" alt="Вкладки Mimo Browser" loading="lazy">
+          <span>Вкладки</span>
+        </button>
+        <button class="screen-card reveal" data-full="screenshots/browser-library.jpg" data-caption="Закладки и история">
+          <img src="screenshots/browser-library.jpg" alt="Библиотека Mimo Browser" loading="lazy">
+          <span>Библиотека</span>
+        </button>
+        <button class="screen-card reveal" data-full="screenshots/browser-settings.jpg" data-caption="Темы, поиск и данные">
+          <img src="screenshots/browser-settings.jpg" alt="Настройки Mimo Browser" loading="lazy">
+          <span>Настройки</span>
+        </button>
+        <button class="screen-card reveal" data-full="screenshots/browser-dark.jpg" data-caption="Тёмная тема">
+          <img src="screenshots/browser-dark.jpg" alt="Тёмная тема Mimo Browser" loading="lazy">
+          <span>Тёмная тема</span>
+        </button>
+        <button class="screen-card reveal" data-full="screenshots/browser-nothing.jpg" data-caption="Характер Nothing">
+          <img src="screenshots/browser-nothing.jpg" alt="Тема Nothing в Mimo Browser" loading="lazy">
+          <span>Nothing</span>
+        </button>
+      </div>
+    </section>
+
+    <section class="section privacy-section" id="privacy">
+      <div class="privacy-card reveal">
+        <div class="privacy-orbit" aria-hidden="true">
+          <svg viewBox="0 0 48 48"><use href="#i-globe"/></svg>
+        </div>
+        <div class="privacy-copy">
+          <span class="kicker">Приватность</span>
+          <h2>История остаётся у вас</h2>
+          <p>Mimo Browser не просит аккаунт и не синхронизирует данные. Закладки, история, настройки и файлы хранятся на устройстве. Сайты получают сеть только тогда, когда вы сами открываете страницу.</p>
+          <div class="privacy-grid">
+            <div><b>0</b><span>аккаунтов</span></div>
+            <div><b>0</b><span>синхронизаций</span></div>
+            <div><b>1</b><span>приватная библиотека</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section download-section" id="download">
+      <div class="download-card reveal">
+        <div class="download-copy">
+          <span class="kicker">Попробовать</span>
+          <h2>Скачайте Mimo Browser</h2>
+          <p>Версия 0.1.0 для Android 9+ (64-bit).<br>Подписана ключом Mimo для side-loading.</p>
+          <div class="download-actions">
+            <a class="btn btn-primary" href="https://github.com/dokmoshen/mimo-browser/releases/latest/download/mimo-browser.apk">
+              <svg class="icon"><use href="#i-download"/></svg>
+              Скачать APK
+            </a>
+            <a class="btn btn-ghost" href="https://github.com/dokmoshen/mimo-browser/releases" rel="noopener">
+              GitHub Releases
+              <svg class="icon"><use href="#i-arrow"/></svg>
+            </a>
+            <a class="btn btn-ghost" href="#screens">
+              Сначала экраны
+              <svg class="icon"><use href="#i-arrow"/></svg>
+            </a>
+          </div>
+          <p class="file-meta">≈ 4 МБ · Android 9.0+ (64-bit) · вкладки и закладки</p>
+        </div>
+        <div class="install-card">
+          <b>Как установить</b>
+          <ol>
+            <li>Скачайте APK на Android-устройство.</li>
+            <li>Разрешите установку из этого источника.</li>
+            <li>Откройте Mimo Browser и начните со строки поиска.</li>
+          </ol>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-brand">
+      <svg class="brand-mark" viewBox="0 0 48 48" aria-hidden="true"><use href="#i-star"/></svg>
+      <span>mimo</span>
+    </div>
+    <p>Интернет без суеты. Тёплая бумага. Живые пружины.</p>
+    <div class="footer-links">
+      <a href="index.html">Заметки</a>
+      <a href="https://github.com/dokmoshen/mimo-browser" rel="noopener">GitHub</a>
+      <a href="https://www.gnu.org/licenses/gpl-3.0.html" rel="noopener">GPL-3.0</a>
+      <a href="https://github.com/dokmoshen/mimo-browser/releases/latest/download/mimo-browser.apk">APK</a>
+      <a href="#top">Наверх ↑</a>
+    </div>
+    <span class="footer-copy">Mimo Browser · Material 3 Expressive · 2026</span>
+  </footer>
+
+  <div class="lightbox" id="lightbox" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Просмотр экрана">
+    <button class="lightbox-close" id="lightboxClose" type="button" aria-label="Закрыть">
+      <svg class="icon"><use href="#i-close"/></svg>
+    </button>
+    <figure>
+      <img id="lightboxImage" alt="">
+      <figcaption id="lightboxCaption"></figcaption>
+    </figure>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
